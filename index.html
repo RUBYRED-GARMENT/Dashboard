@@ -59,6 +59,60 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
 .hidden { display: none !important; }
 
+/* ─── Ratio Section Styles ─── */
+.ratio-checklist {
+    flex: 1; min-width: 250px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; max-height: 280px; overflow-y: auto; padding-right: 6px;
+}
+.ratio-check-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; cursor: pointer;
+    background: var(--surface2); padding: 9px 10px;
+    border-radius: 8px; border: 1px solid var(--border);
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+}
+.ratio-check-item:hover {
+    border-color: var(--accent);
+}
+.ratio-check-item.is-base {
+    border-color: #f3524a;
+    background: rgba(243, 82, 74, 0.08);
+}
+.ratio-check-item.is-base .base-badge {
+    display: inline-block;
+}
+.base-badge {
+    display: none;
+    font-size: 9px; font-weight: 800;
+    background: #f3524a; color: #fff;
+    padding: 1px 5px; border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    margin-left: auto;
+}
+.ratio-hint {
+    font-size: 11px; color: var(--muted);
+    margin-bottom: 12px; font-family: 'Inter', sans-serif;
+    padding: 8px 12px; background: var(--surface2);
+    border-radius: 8px; border: 1px solid var(--border);
+    line-height: 1.5;
+}
+.ratio-stats {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-top: 14px;
+}
+.ratio-stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; font-family: 'Roboto Mono', monospace;
+    padding: 6px 10px; border-radius: 7px;
+    background: var(--surface2); border: 1px solid var(--border);
+}
+.ratio-stat-label { color: var(--muted); font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600; }
+.ratio-stat-val { font-weight: 700; }
+/* ─────────────────────────── */
+
 @media (max-width: 768px) {
     .chart-container { min-height: 500px; } 
 }
@@ -107,13 +161,52 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
     </div>
 </div>
 
+<!-- ─── Ratio Analysis Section ─── -->
+<div id="ratioSection">
+    <div class="sec-title">Ratio Analysis — % of Total</div>
+    <div class="chart-card">
+        <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+
+            <!-- Left: checklist + stats -->
+            <div style="flex: 1; min-width: 260px;">
+                <div class="ratio-hint">
+                    <i class="fa-solid fa-circle-info" style="color:var(--accent); margin-right:6px;"></i>
+                    اختر العنصر الأول كـ <strong>Total</strong> (العدد الكلي)،
+                    ثم اختر باقي العناصر لتظهر نسبتها منه.
+                </div>
+                <input type="text" id="ratioSearch"
+                    style="width:100%; margin-bottom:10px; padding:10px; background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;"
+                    placeholder="Search..." onkeyup="filterRatioChecklist()">
+                <div class="ratio-checklist" id="ratioChecklist"></div>
+
+                <!-- Stats table shown after selection -->
+                <div class="ratio-stats" id="ratioStats" style="display:none; margin-top:16px;"></div>
+            </div>
+
+            <!-- Right: pie chart -->
+            <div style="flex: 1.2; min-width: 300px; height: 340px; position:relative;">
+                <canvas id="ratioPieChart"></canvas>
+                <div id="ratioPiePlaceholder" style="
+                    position:absolute; inset:0; display:flex; flex-direction:column;
+                    align-items:center; justify-content:center; gap:8px;
+                    color:var(--muted); font-size:13px; font-family:'Inter',sans-serif;">
+                    <i class="fa-solid fa-chart-pie" style="font-size:32px; opacity:0.2;"></i>
+                    <span>اختر عناصر من القائمة</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- ─────────────────────────────── -->
+
 <script>
 const SHEET_ID = '1j7IFj_tylNeqwui57JU7coeB6XXj0Lt7d4yBHaqmutE';
 const API_KEY  = 'AIzaSyB_dCi6NlG_jUCUY955eynfN0gF7KobQ4A';
 const RANGE    = 'recruitment!A1:ZZ5';
 
 const colors = ['#6c63ff', '#0fd493', '#f3524a', '#4594f5', '#f065b8', '#ff8c40', '#f0c040', '#a78bfa', '#00d2ff', '#fbbf24', '#f87171'];
-let charts = {}, pieChart = null, masterData = [];
+let charts = {}, pieChart = null, ratioPieChart = null, masterData = [];
 
 function toggleTheme() {
     const body = document.body;
@@ -142,6 +235,7 @@ function processData(rows) {
     renderOverview(row4, row5);
     renderDetails(row1, row2);
     fillChecklist();
+    fillRatioChecklist();
 }
 
 function renderOverview(labels, values) {
@@ -256,6 +350,175 @@ function applyFilter(val) {
     else if (val === 'all') { ov.classList.remove('hidden'); det.classList.remove('hidden'); document.querySelectorAll('.detail-item, .detail-chart').forEach(e => e.classList.remove('hidden')); }
     else { ov.classList.add('hidden'); det.classList.remove('hidden'); document.querySelectorAll('.detail-item').forEach(e => e.classList.toggle('hidden', !e.classList.contains(val))); document.querySelectorAll('.detail-chart').forEach(e => e.classList.toggle('hidden', e.id !== `card_${val}`)); }
 }
+
+// ─── Ratio Analysis Functions ───────────────────────────────────────────────
+
+function fillRatioChecklist() {
+    const list = document.getElementById('ratioChecklist');
+    list.innerHTML = masterData.map((d, i) =>
+        `<label class="ratio-check-item" id="ratioItem_${i}">
+            <input type="checkbox" value="${i}" onchange="updateRatioPie()">
+            <span style="flex:1;">${d.label}</span>
+            <span class="base-badge">BASE</span>
+        </label>`
+    ).join('');
+}
+
+function filterRatioChecklist() {
+    const q = document.getElementById('ratioSearch').value.toLowerCase();
+    document.querySelectorAll('#ratioChecklist .ratio-check-item').forEach(el => {
+        el.style.display = el.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+    });
+}
+
+function updateRatioPie() {
+    const checkedInputs = Array.from(document.querySelectorAll('#ratioChecklist input:checked'));
+    const placeholder   = document.getElementById('ratioPiePlaceholder');
+    const statsBox      = document.getElementById('ratioStats');
+    const ctx           = document.getElementById('ratioPieChart').getContext('2d');
+
+    // Reset visual states on all items
+    document.querySelectorAll('#ratioChecklist .ratio-check-item').forEach(el => el.classList.remove('is-base'));
+
+    if (checkedInputs.length === 0) {
+        if (ratioPieChart) { ratioPieChart.destroy(); ratioPieChart = null; }
+        placeholder.style.display = 'flex';
+        statsBox.style.display = 'none';
+        return;
+    }
+
+    // First checked item = BASE
+    const baseIdx   = parseInt(checkedInputs[0].value);
+    const baseItem  = masterData[baseIdx];
+    const baseValue = baseItem.value;
+
+    // Mark the base item visually
+    document.getElementById(`ratioItem_${baseIdx}`).classList.add('is-base');
+
+    // Sub items = all checked after the first
+    const subItems = checkedInputs.slice(1).map(inp => masterData[parseInt(inp.value)]);
+
+    // Build pie data
+    const pieLabels = [];
+    const pieValues = [];
+    const pieColors = [];
+    let sumOfParts  = 0;
+
+    subItems.forEach((item, idx) => {
+        pieLabels.push(item.label);
+        pieValues.push(item.value);
+        pieColors.push(colors[(idx + 1) % 11]);
+        sumOfParts += item.value;
+    });
+
+    // Add "Remaining" slice if parts don't fill the total
+    const remaining = baseValue - sumOfParts;
+    if (subItems.length > 0 && remaining > 0) {
+        pieLabels.push('Remaining');
+        pieValues.push(remaining);
+        pieColors.push('rgba(130,133,160,0.35)');
+    }
+
+    placeholder.style.display = 'none';
+    if (ratioPieChart) { ratioPieChart.destroy(); ratioPieChart = null; }
+
+    // Only show pie if we have sub-items selected
+    if (subItems.length === 0) {
+        placeholder.style.display = 'flex';
+        placeholder.innerHTML = `
+            <i class="fa-solid fa-hand-pointer" style="font-size:28px; opacity:0.25;"></i>
+            <span style="font-size:12px;">اختر عناصر إضافية لمقارنتها بـ <strong>${baseItem.label}</strong></span>`;
+        statsBox.style.display = 'none';
+        return;
+    }
+
+    ratioPieChart = new Chart(ctx, {
+        type: 'doughnut',
+        plugins: [ChartDataLabels],
+        data: {
+            labels: pieLabels,
+            datasets: [{
+                data: pieValues,
+                backgroundColor: pieColors,
+                borderWidth: 2,
+                borderColor: 'var(--surface)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '52%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#8285a0',
+                        font: { family: 'Inter', size: 10 },
+                        padding: 12,
+                        usePointStyle: true
+                    }
+                },
+                datalabels: {
+                    color: '#fff',
+                    font: { family: 'Roboto Mono', weight: '700', size: 11 },
+                    formatter: (v) => {
+                        if (baseValue === 0) return '0%';
+                        return ((v / baseValue) * 100).toFixed(1) + '%';
+                    },
+                    // Hide label if slice is too small
+                    display: (ctx) => {
+                        const v = ctx.dataset.data[ctx.dataIndex];
+                        return baseValue > 0 && (v / baseValue) >= 0.03;
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => {
+                            const v = ctx.parsed;
+                            const pct = baseValue > 0 ? ((v / baseValue) * 100).toFixed(1) : 0;
+                            return ` ${ctx.label}: ${v.toLocaleString()} (${pct}% of ${baseItem.label})`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // ── Stats table ──────────────────────────────────────────
+    let statsHTML = `
+        <div class="ratio-stat-row">
+            <span class="ratio-stat-label" style="color:#f3524a;">⬤ ${baseItem.label} (BASE)</span>
+            <span class="ratio-stat-val" style="color:#f3524a;">${baseValue.toLocaleString()}</span>
+        </div>`;
+
+    subItems.forEach((item, idx) => {
+        const pct = baseValue > 0 ? ((item.value / baseValue) * 100).toFixed(1) : 0;
+        statsHTML += `
+            <div class="ratio-stat-row">
+                <span class="ratio-stat-label" style="color:${colors[(idx+1)%11]}">⬤ ${item.label}</span>
+                <span class="ratio-stat-val">${item.value.toLocaleString()} &nbsp;
+                    <span style="color:${colors[(idx+1)%11]}; font-size:11px;">${pct}%</span>
+                </span>
+            </div>`;
+    });
+
+    if (remaining > 0) {
+        const remPct = ((remaining / baseValue) * 100).toFixed(1);
+        statsHTML += `
+            <div class="ratio-stat-row">
+                <span class="ratio-stat-label">⬤ Remaining</span>
+                <span class="ratio-stat-val">${remaining.toLocaleString()} &nbsp;
+                    <span style="color:var(--muted); font-size:11px;">${remPct}%</span>
+                </span>
+            </div>`;
+    }
+
+    statsBox.innerHTML  = statsHTML;
+    statsBox.style.display = 'flex';
+    // ─────────────────────────────────────────────────────────
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 
 window.addEventListener('resize', fetchData);
 fetchData();
