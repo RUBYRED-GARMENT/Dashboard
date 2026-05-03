@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -16,7 +17,6 @@
   --accent: #6c63ff; --radius: 16px; --grid: rgba(255,255,255,0.03);
 }
 
-/* Light Mode Variables */
 body.light-mode {
   --bg: #f4f7fa; --surface: #ffffff; --surface2: #fcfcfd;
   --border: rgba(0,0,0,0.08); --text: #1a1d23; --muted: #64748b;
@@ -29,11 +29,24 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 15px; flex-wrap: wrap; }
 .page-title { font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
 
-/* Theme Toggle Button */
 .theme-toggle {
     background: var(--surface2); color: var(--text); border: 1px solid var(--border);
     padding: 10px 15px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;
 }
+
+/* ── Daily Report Nav Button ── */
+.daily-nav-btn {
+    background: linear-gradient(135deg, #f3524a 0%, #ff8c40 100%);
+    color: #fff; border: none;
+    padding: 10px 18px; border-radius: 10px; cursor: pointer;
+    font-size: 13px; font-weight: 700; font-family: 'Inter', sans-serif;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 14px rgba(243,82,74,0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 0.3px;
+}
+.daily-nav-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(243,82,74,0.45); }
+.daily-nav-btn:active { transform: translateY(0); }
 
 .filter-select {
     background: var(--surface2); color: var(--text); border: 1px solid var(--border);
@@ -46,7 +59,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 .kpi-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; font-family: 'Inter', sans-serif; }
 .kpi-val { 
-    font-family: 'Roboto Mono', monospace; /* خط رسمي جدا للأرقام */
+    font-family: 'Roboto Mono', monospace;
     font-size: 26px; font-weight: 700; color: var(--c); 
 }
 
@@ -73,16 +86,12 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
     transition: border-color 0.2s, background 0.2s;
     position: relative;
 }
-.ratio-check-item:hover {
-    border-color: var(--accent);
-}
+.ratio-check-item:hover { border-color: var(--accent); }
 .ratio-check-item.is-base {
     border-color: #f3524a;
     background: rgba(243, 82, 74, 0.08);
 }
-.ratio-check-item.is-base .base-badge {
-    display: inline-block;
-}
+.ratio-check-item.is-base .base-badge { display: inline-block; }
 .base-badge {
     display: none;
     font-size: 9px; font-weight: 800;
@@ -99,10 +108,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
     border-radius: 8px; border: 1px solid var(--border);
     line-height: 1.5;
 }
-.ratio-stats {
-    display: flex; flex-direction: column; gap: 6px;
-    margin-top: 14px;
-}
+.ratio-stats { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
 .ratio-stat-row {
     display: flex; justify-content: space-between; align-items: center;
     font-size: 12px; font-family: 'Roboto Mono', monospace;
@@ -111,20 +117,166 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 }
 .ratio-stat-label { color: var(--muted); font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600; }
 .ratio-stat-val { font-weight: 700; }
+
+/* ─── Daily Report Section ─── */
+#dailyReportSection {
+    scroll-margin-top: 20px;
+}
+
+.daily-report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.daily-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 4px 12px -2px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    position: relative;
+}
+.daily-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px -4px rgba(0,0,0,0.25);
+    border-color: var(--dc);
+}
+.daily-card.expanded {
+    border-color: var(--dc);
+    box-shadow: 0 8px 28px -4px rgba(0,0,0,0.3);
+}
+
+.daily-card-header {
+    padding: 16px 18px 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+}
+.daily-card.expanded .daily-card-header {
+    border-bottom-color: var(--border);
+}
+
+.daily-card-left { display: flex; flex-direction: column; gap: 4px; }
+
+.daily-card-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    background: color-mix(in srgb, var(--dc) 15%, transparent);
+    color: var(--dc);
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.daily-card-label {
+    font-size: 10px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase;
+    font-family: 'Inter', sans-serif; letter-spacing: 1px;
+}
+.daily-card-value {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 32px; font-weight: 700;
+    color: var(--dc);
+    line-height: 1;
+}
+
+.daily-card-toggle {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--muted);
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.3s;
+}
+.daily-card.expanded .daily-card-toggle {
+    background: color-mix(in srgb, var(--dc) 15%, transparent);
+    color: var(--dc);
+    transform: rotate(180deg);
+}
+
+/* Expandable details panel */
+.daily-card-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s;
+    padding: 0 18px;
+}
+.daily-card.expanded .daily-card-details {
+    max-height: 400px;
+    padding: 14px 18px 16px;
+}
+
+.detail-empty {
+    font-size: 12px; color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    text-align: center; padding: 8px 0;
+    font-style: italic;
+}
+
+.detail-item-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+}
+.detail-item-row:last-child { border-bottom: none; }
+.detail-item-row::before {
+    content: '';
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--dc);
+    flex-shrink: 0;
+}
+
+/* ── Chart area below cards ── */
+.daily-chart-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+@media (max-width: 700px) {
+    .daily-chart-wrap { grid-template-columns: 1fr; }
+}
+.daily-chart-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+.daily-chart-title {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1.2px;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 14px;
+}
 /* ─────────────────────────── */
 
 @media (max-width: 768px) {
-    .chart-container { min-height: 500px; } 
+    .chart-container { min-height: 500px; }
 }
 </style>
+
 </head>
 <body>
 
 <header class="header">
-    <div style="display: flex; align-items: center; gap: 15px;">
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
         <div class="page-title">RUBYRED ANALYTICS</div>
         <button class="theme-toggle" onclick="toggleTheme()">
             <i id="themeIcon" class="fa-solid fa-sun"></i>
+        </button>
+        <!-- Daily Report Nav Button -->
+        <button class="daily-nav-btn" onclick="document.getElementById('dailyReportSection').scrollIntoView({behavior:'smooth'})">
+            <i class="fa-solid fa-clipboard-list"></i> Daily Report
         </button>
     </div>
     <select class="filter-select" id="filterDropdown" onchange="applyFilter(this.value)">
@@ -162,12 +314,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 </div>
 
 <!-- ─── Ratio Analysis Section ─── -->
+
 <div id="ratioSection">
     <div class="sec-title">Ratio Analysis — % of Total</div>
     <div class="chart-card">
         <div style="display: flex; gap: 24px; flex-wrap: wrap;">
-
-            <!-- Left: checklist + stats -->
             <div style="flex: 1; min-width: 260px;">
                 <div class="ratio-hint">
                     <i class="fa-solid fa-circle-info" style="color:var(--accent); margin-right:6px;"></i>
@@ -178,12 +329,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
                     style="width:100%; margin-bottom:10px; padding:10px; background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:8px; outline:none;"
                     placeholder="Search..." onkeyup="filterRatioChecklist()">
                 <div class="ratio-checklist" id="ratioChecklist"></div>
-
-                <!-- Stats table shown after selection -->
                 <div class="ratio-stats" id="ratioStats" style="display:none; margin-top:16px;"></div>
             </div>
-
-            <!-- Right: pie chart -->
             <div style="flex: 1.2; min-width: 300px; height: 340px; position:relative;">
                 <canvas id="ratioPieChart"></canvas>
                 <div id="ratioPiePlaceholder" style="
@@ -194,31 +341,81 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
                     <span>اختر عناصر من القائمة</span>
                 </div>
             </div>
-
         </div>
     </div>
+</div>
+
+<!-- ─── Daily Report Section ─── -->
+
+<div id="dailyReportSection">
+    <div class="sec-title" style="margin-top:30px;">
+        <i class="fa-solid fa-clipboard-list" style="margin-left:0; margin-right:6px; color:#f3524a;"></i>
+        Daily Report
+    </div>
+
+```
+<!-- Cards Grid -->
+<div class="daily-report-grid" id="dailyCardsContainer"></div>
+
+<!-- Charts -->
+<div class="daily-chart-wrap">
+    <div class="daily-chart-box">
+        <div class="daily-chart-title">
+            <i class="fa-solid fa-chart-bar" style="margin-right:5px; color:#6c63ff;"></i>
+            Interview Breakdown
+        </div>
+        <div style="position:relative; height:260px;">
+            <canvas id="dailyBarChart"></canvas>
+        </div>
+    </div>
+    <div class="daily-chart-box">
+        <div class="daily-chart-title">
+            <i class="fa-solid fa-chart-pie" style="margin-right:5px; color:#f3524a;"></i>
+            Distribution
+        </div>
+        <div style="position:relative; height:260px;">
+            <canvas id="dailyDonutChart"></canvas>
+        </div>
+    </div>
+</div>
+```
+
 </div>
 <!-- ─────────────────────────────── -->
 
 <script>
 const SHEET_ID = '1j7IFj_tylNeqwui57JU7coeB6XXj0Lt7d4yBHaqmutE';
 const API_KEY  = 'AIzaSyB_dCi6NlG_jUCUY955eynfN0gF7KobQ4A';
-const RANGE    = 'recruitment!A1:ZZ5';
+// Expand range to row 20 to capture details rows 9-20
+const RANGE    = 'recruitment!A1:ZZ20';
 
 const colors = ['#6c63ff', '#0fd493', '#f3524a', '#4594f5', '#f065b8', '#ff8c40', '#f0c040', '#a78bfa', '#00d2ff', '#fbbf24', '#f87171'];
+
+// Colors: Total=purple, Accepted=green, Rejected=orange-red, Hold=blue, Start=emerald-green, Left=red
+const dailyCardColors = ['#6c63ff', '#0fd493', '#ff8c40', '#4594f5', '#10b981', '#f3524a'];
+// Icons per position: Total, Accepted, Rejected, On Hold, Start, Left
+const dailyIcons = [
+    'fa-users',            // Total Interviews
+    'fa-circle-check',     // Accepted
+    'fa-ban',              // Rejected
+    'fa-hourglass-half',   // On Hold
+    'fa-rocket',           // Start
+    'fa-door-open'         // Left
+];
+
 let charts = {}, pieChart = null, ratioPieChart = null, masterData = [];
+let dailyBarChart = null, dailyDonutChart = null;
 
 function toggleTheme() {
     const body = document.body;
     const icon = document.getElementById('themeIcon');
     body.classList.toggle('light-mode');
-    
     if(body.classList.contains('light-mode')) {
         icon.classList.replace('fa-sun', 'fa-moon');
     } else {
         icon.classList.replace('fa-moon', 'fa-sun');
     }
-    fetchData(); // لإعادة رسم الجرافات بألوان المحاور الجديدة
+    fetchData();
 }
 
 async function fetchData() {
@@ -231,11 +428,17 @@ async function fetchData() {
 
 function processData(rows) {
     const row1 = rows[0] || [], row2 = rows[1] || [], row4 = rows[3] || [], row5 = rows[4] || [];
-    masterData = []; 
+    // Daily report rows: row7=index6 (names), row8=index7 (values), row9-20=index8-19 (details)
+    const row7  = rows[6]  || [];   // card titles
+    const row8  = rows[7]  || [];   // card values
+    const detailRows = rows.slice(8, 20); // rows 9–20
+
+    masterData = [];
     renderOverview(row4, row5);
     renderDetails(row1, row2);
     fillChecklist();
     fillRatioChecklist();
+    renderDailyReport(row7, row8, detailRows);
 }
 
 function renderOverview(labels, values) {
@@ -351,7 +554,7 @@ function applyFilter(val) {
     else { ov.classList.add('hidden'); det.classList.remove('hidden'); document.querySelectorAll('.detail-item').forEach(e => e.classList.toggle('hidden', !e.classList.contains(val))); document.querySelectorAll('.detail-chart').forEach(e => e.classList.toggle('hidden', e.id !== `card_${val}`)); }
 }
 
-// ─── Ratio Analysis Functions ───────────────────────────────────────────────
+// ─── Ratio Analysis Functions ──────────────────────────────────────────────
 
 function fillRatioChecklist() {
     const list = document.getElementById('ratioChecklist');
@@ -377,7 +580,6 @@ function updateRatioPie() {
     const statsBox      = document.getElementById('ratioStats');
     const ctx           = document.getElementById('ratioPieChart').getContext('2d');
 
-    // Reset visual states on all items
     document.querySelectorAll('#ratioChecklist .ratio-check-item').forEach(el => el.classList.remove('is-base'));
 
     if (checkedInputs.length === 0) {
@@ -387,21 +589,15 @@ function updateRatioPie() {
         return;
     }
 
-    // First checked item = BASE
     const baseIdx   = parseInt(checkedInputs[0].value);
     const baseItem  = masterData[baseIdx];
     const baseValue = baseItem.value;
 
-    // Mark the base item visually
     document.getElementById(`ratioItem_${baseIdx}`).classList.add('is-base');
 
-    // Sub items = all checked after the first
     const subItems = checkedInputs.slice(1).map(inp => masterData[parseInt(inp.value)]);
 
-    // Build pie data
-    const pieLabels = [];
-    const pieValues = [];
-    const pieColors = [];
+    const pieLabels = [], pieValues = [], pieColors = [];
     let sumOfParts  = 0;
 
     subItems.forEach((item, idx) => {
@@ -411,7 +607,6 @@ function updateRatioPie() {
         sumOfParts += item.value;
     });
 
-    // Add "Remaining" slice if parts don't fill the total
     const remaining = baseValue - sumOfParts;
     if (subItems.length > 0 && remaining > 0) {
         pieLabels.push('Remaining');
@@ -422,7 +617,6 @@ function updateRatioPie() {
     placeholder.style.display = 'none';
     if (ratioPieChart) { ratioPieChart.destroy(); ratioPieChart = null; }
 
-    // Only show pie if we have sub-items selected
     if (subItems.length === 0) {
         placeholder.style.display = 'flex';
         placeholder.innerHTML = `
@@ -433,50 +627,175 @@ function updateRatioPie() {
     }
 
     ratioPieChart = new Chart(ctx, {
-        type: 'doughnut',
-        plugins: [ChartDataLabels],
+        type: 'doughnut', plugins: [ChartDataLabels],
+        data: { labels: pieLabels, datasets: [{ data: pieValues, backgroundColor: pieColors, borderWidth: 2, borderColor: 'var(--surface)' }] },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '52%',
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#8285a0', font: { family: 'Inter', size: 10 }, padding: 12, usePointStyle: true } },
+                datalabels: {
+                    color: '#fff', font: { family: 'Roboto Mono', weight: '700', size: 11 },
+                    formatter: (v) => { if (baseValue === 0) return '0%'; return ((v / baseValue) * 100).toFixed(1) + '%'; },
+                    display: (ctx) => { const v = ctx.dataset.data[ctx.dataIndex]; return baseValue > 0 && (v / baseValue) >= 0.03; }
+                },
+                tooltip: { callbacks: { label: (ctx) => { const v = ctx.parsed; const pct = baseValue > 0 ? ((v / baseValue) * 100).toFixed(1) : 0; return ` ${ctx.label}: ${v.toLocaleString()} (${pct}% of ${baseItem.label})`; } } }
+            }
+        }
+    });
+
+    let statsHTML = `<div class="ratio-stat-row"><span class="ratio-stat-label" style="color:#f3524a;">⬤ ${baseItem.label} (BASE)</span><span class="ratio-stat-val" style="color:#f3524a;">${baseValue.toLocaleString()}</span></div>`;
+    subItems.forEach((item, idx) => {
+        const pct = baseValue > 0 ? ((item.value / baseValue) * 100).toFixed(1) : 0;
+        statsHTML += `<div class="ratio-stat-row"><span class="ratio-stat-label" style="color:${colors[(idx+1)%11]}">⬤ ${item.label}</span><span class="ratio-stat-val">${item.value.toLocaleString()} &nbsp;<span style="color:${colors[(idx+1)%11]}; font-size:11px;">${pct}%</span></span></div>`;
+    });
+    if (remaining > 0) {
+        const remPct = ((remaining / baseValue) * 100).toFixed(1);
+        statsHTML += `<div class="ratio-stat-row"><span class="ratio-stat-label">⬤ Remaining</span><span class="ratio-stat-val">${remaining.toLocaleString()} &nbsp;<span style="color:var(--muted); font-size:11px;">${remPct}%</span></span></div>`;
+    }
+    statsBox.innerHTML  = statsHTML;
+    statsBox.style.display = 'flex';
+}
+
+// ─── Daily Report Functions ────────────────────────────────────────────────
+
+function renderDailyReport(nameRow, valueRow, detailRows) {
+    const container = document.getElementById('dailyCardsContainer');
+    container.innerHTML = '';
+
+    // Filter out empty columns
+    const cardCount = nameRow.filter(n => n && n.trim() !== '').length;
+    if (cardCount === 0) return;
+
+    const cardNames  = nameRow.slice(0, cardCount);
+    const cardValues = valueRow.slice(0, cardCount);
+
+    // Build details per column: collect non-empty cells from detailRows for each col index
+    const detailsPerCard = cardNames.map((_, colIdx) => {
+        return detailRows
+            .map(row => (row[colIdx] || '').trim())
+            .filter(cell => cell !== '');
+    });
+
+    // Build cards HTML
+    cardNames.forEach((name, i) => {
+        const color = dailyCardColors[i] || dailyCardColors[dailyCardColors.length - 1];
+        const icon  = dailyIcons[i] || 'fa-circle-dot';
+        const val   = cardValues[i] || '0';
+        const details = detailsPerCard[i];
+
+        const detailsHTML = details.length
+            ? details.map(d => `<div class="detail-item-row">${d}</div>`).join('')
+            : `<div class="detail-empty">No details available</div>`;
+
+        container.innerHTML += `
+            <div class="daily-card" id="dcard_${i}" style="--dc:${color};" onclick="toggleDailyCard(${i})">
+                <div class="daily-card-header">
+                    <div class="daily-card-left">
+                        <div class="daily-card-icon">
+                            <i class="fa-solid ${icon}"></i>
+                        </div>
+                        <div class="daily-card-label">${name}</div>
+                        <div class="daily-card-value">${val}</div>
+                    </div>
+                    <div class="daily-card-toggle">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="daily-card-details" id="ddetails_${i}">
+                    ${detailsHTML}
+                </div>
+            </div>`;
+    });
+
+    // Render charts
+    renderDailyCharts(cardNames, cardValues.map(v => parseFloat(v) || 0));
+}
+
+function toggleDailyCard(idx) {
+    const card = document.getElementById(`dcard_${idx}`);
+    card.classList.toggle('expanded');
+}
+
+function renderDailyCharts(labels, values) {
+    const textColor = getComputedStyle(document.body).getPropertyValue('--muted').trim();
+    const gridColor = getComputedStyle(document.body).getPropertyValue('--grid').trim();
+    const textFull  = getComputedStyle(document.body).getPropertyValue('--text').trim();
+    const bgColors  = labels.map((_, i) => dailyCardColors[i] || dailyCardColors[dailyCardColors.length - 1]);
+
+    if (dailyBarChart)   { dailyBarChart.destroy();   dailyBarChart   = null; }
+    if (dailyDonutChart) { dailyDonutChart.destroy(); dailyDonutChart = null; }
+
+    // ── Bar chart: all cards ──────────────────────────────────────────────
+    const barCtx = document.getElementById('dailyBarChart').getContext('2d');
+    dailyBarChart = new Chart(barCtx, {
+        type: 'bar', plugins: [ChartDataLabels],
+        data: { labels, datasets: [{ data: values, backgroundColor: bgColors, borderRadius: 8, barThickness: 32 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            layout: { padding: { top: 22, right: 12 } },
+            plugins: {
+                legend: { display: false },
+                datalabels: { anchor: 'end', align: 'end', color: textFull, font: { family: 'Roboto Mono', weight: '700', size: 11 }, offset: 2 }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Roboto Mono', size: 10 } } },
+                x: { grid: { display: false }, ticks: { color: textColor, font: { family: 'Inter', weight: '600', size: 10 } } }
+            }
+        }
+    });
+
+    // ── Donut chart: cards 2,3,4 (index 1,2,3) as % of card 1 (index 0 = Total) ──
+    const totalValue = values[0] || 0;
+
+    // Take cards at index 1, 2, 3 (skip index 0 = Total)
+    const donutSlices = labels.slice(1, 4);
+    const donutValues = values.slice(1, 4);
+    const donutColors = bgColors.slice(1, 4);
+
+    // Add "Remaining" slice for the unaccounted portion
+    const sumSlices  = donutValues.reduce((a, b) => a + b, 0);
+    const remaining  = Math.max(0, totalValue - sumSlices);
+    if (remaining > 0) {
+        donutSlices.push('Remaining');
+        donutValues.push(remaining);
+        donutColors.push('rgba(130,133,160,0.25)');
+    }
+
+    const donutCtx = document.getElementById('dailyDonutChart').getContext('2d');
+    dailyDonutChart = new Chart(donutCtx, {
+        type: 'doughnut', plugins: [ChartDataLabels],
         data: {
-            labels: pieLabels,
+            labels: donutSlices,
             datasets: [{
-                data: pieValues,
-                backgroundColor: pieColors,
+                data: donutValues,
+                backgroundColor: donutColors,
                 borderWidth: 2,
-                borderColor: 'var(--surface)'
+                borderColor: 'var(--surface)',
+                hoverOffset: 6
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '52%',
+            responsive: true, maintainAspectRatio: false, cutout: '58%',
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: {
-                        color: '#8285a0',
-                        font: { family: 'Inter', size: 10 },
-                        padding: 12,
-                        usePointStyle: true
-                    }
+                    labels: { color: textColor, font: { family: 'Inter', size: 10 }, padding: 10, usePointStyle: true }
                 },
                 datalabels: {
                     color: '#fff',
                     font: { family: 'Roboto Mono', weight: '700', size: 11 },
                     formatter: (v) => {
-                        if (baseValue === 0) return '0%';
-                        return ((v / baseValue) * 100).toFixed(1) + '%';
-                    },
-                    // Hide label if slice is too small
-                    display: (ctx) => {
-                        const v = ctx.dataset.data[ctx.dataIndex];
-                        return baseValue > 0 && (v / baseValue) >= 0.03;
+                        if (totalValue === 0) return '';
+                        const pct = ((v / totalValue) * 100).toFixed(1);
+                        return parseFloat(pct) >= 4 ? pct + '%' : '';
                     }
                 },
                 tooltip: {
                     callbacks: {
                         label: (ctx) => {
                             const v = ctx.parsed;
-                            const pct = baseValue > 0 ? ((v / baseValue) * 100).toFixed(1) : 0;
-                            return ` ${ctx.label}: ${v.toLocaleString()} (${pct}% of ${baseItem.label})`;
+                            const pct = totalValue > 0 ? ((v / totalValue) * 100).toFixed(1) : 0;
+                            return ` ${ctx.label}: ${v} (${pct}% of ${labels[0] || 'Total'})`;
                         }
                     }
                 }
@@ -484,44 +803,17 @@ function updateRatioPie() {
         }
     });
 
-    // ── Stats table ──────────────────────────────────────────
-    let statsHTML = `
-        <div class="ratio-stat-row">
-            <span class="ratio-stat-label" style="color:#f3524a;">⬤ ${baseItem.label} (BASE)</span>
-            <span class="ratio-stat-val" style="color:#f3524a;">${baseValue.toLocaleString()}</span>
-        </div>`;
-
-    subItems.forEach((item, idx) => {
-        const pct = baseValue > 0 ? ((item.value / baseValue) * 100).toFixed(1) : 0;
-        statsHTML += `
-            <div class="ratio-stat-row">
-                <span class="ratio-stat-label" style="color:${colors[(idx+1)%11]}">⬤ ${item.label}</span>
-                <span class="ratio-stat-val">${item.value.toLocaleString()} &nbsp;
-                    <span style="color:${colors[(idx+1)%11]}; font-size:11px;">${pct}%</span>
-                </span>
-            </div>`;
-    });
-
-    if (remaining > 0) {
-        const remPct = ((remaining / baseValue) * 100).toFixed(1);
-        statsHTML += `
-            <div class="ratio-stat-row">
-                <span class="ratio-stat-label">⬤ Remaining</span>
-                <span class="ratio-stat-val">${remaining.toLocaleString()} &nbsp;
-                    <span style="color:var(--muted); font-size:11px;">${remPct}%</span>
-                </span>
-            </div>`;
-    }
-
-    statsBox.innerHTML  = statsHTML;
-    statsBox.style.display = 'flex';
-    // ─────────────────────────────────────────────────────────
+    // Center label showing Total number
+    // (drawn via plugin below)
+    dailyDonutChart._totalLabel = `${totalValue}`;
+    dailyDonutChart._totalCaption = labels[0] || 'Total';
 }
 
-// ────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────
 
 window.addEventListener('resize', fetchData);
 fetchData();
 </script>
+
 </body>
 </html>
