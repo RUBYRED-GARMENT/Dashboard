@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -39,7 +40,6 @@ body.login-locked { overflow: hidden; }
     opacity: 0; visibility: hidden; pointer-events: none;
 }
 
-/* Animated grid background */
 .login-bg-grid {
     position: absolute; inset: 0; overflow: hidden; pointer-events: none;
 }
@@ -73,7 +73,6 @@ body.login-locked { overflow: hidden; }
     50%      { opacity:1;   transform:translate(-50%,-50%) scale(1.07); }
 }
 
-/* Login card */
 .login-box {
     position: relative; z-index: 1;
     background: rgba(14,16,24,0.94);
@@ -94,7 +93,6 @@ body.login-locked { overflow: hidden; }
     to   { opacity:1; transform:translateY(0)    scale(1);    }
 }
 
-/* Logo / brand */
 .login-logo-wrap {
     display: flex; flex-direction: column; align-items: center; gap: 6px;
     margin-bottom: 38px;
@@ -133,14 +131,12 @@ body.login-locked { overflow: hidden; }
     margin-top: 2px;
 }
 
-/* Divider */
 .login-divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(108,99,255,0.2), transparent);
     margin-bottom: 26px;
 }
 
-/* Form fields */
 .login-field { position: relative; margin-bottom: 14px; }
 .login-field-icon {
     position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
@@ -167,7 +163,6 @@ body.login-locked { overflow: hidden; }
 #loginPassword { letter-spacing: 3px; }
 #loginPassword::placeholder { letter-spacing: 0.5px; }
 
-/* Login button */
 .login-btn {
     width: 100%; padding: 16px;
     background: linear-gradient(135deg, #6c63ff 0%, #f3524a 100%);
@@ -188,14 +183,12 @@ body.login-locked { overflow: hidden; }
 .login-btn:active { transform: translateY(0px); }
 .login-btn.loading { opacity: 0.65; pointer-events: none; }
 
-/* Spinner inside button */
 .login-btn .btn-text  { transition: opacity 0.2s; }
 .login-btn .btn-spin  { display: none; }
 .login-btn.loading .btn-text { opacity: 0; }
 .login-btn.loading .btn-spin { display: inline-block; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Error message */
 .login-error {
     display: none; margin-top: 14px;
     background: rgba(243,82,74,0.09);
@@ -217,7 +210,6 @@ body.login-locked { overflow: hidden; }
     40%,60%  { transform: translateX(6px);  }
 }
 
-/* Footer */
 .login-footer {
     margin-top: 28px; text-align: center;
     font-size: 10px; color: rgba(130,133,160,0.32);
@@ -230,10 +222,9 @@ body.login-locked { overflow: hidden; }
 }
 
 /* ══════════════════════════════════════════
-   ORIGINAL DASHBOARD STYLES
+   DASHBOARD STYLES
 ══════════════════════════════════════════ */
 
-/* ─── FIX: Sticky header ─────────────────── */
 .header {
     display: flex;
     justify-content: space-between;
@@ -276,7 +267,34 @@ body.login-locked { overflow: hidden; }
     padding: 10px 15px; border-radius: 10px; font-weight: 600; cursor: pointer; outline: none;
 }
 
-.sec-title { font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin: 25px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 5px; font-weight: 700; }
+/* ── Section group title (department name) ─────────────── */
+.sec-title {
+    font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: 1.5px;
+    color: var(--muted); text-transform: uppercase; margin: 25px 0 12px;
+    border-bottom: 1px solid var(--border); padding-bottom: 5px; font-weight: 700;
+}
+
+/* Department section wrapper */
+.dept-section {
+    margin-bottom: 10px;
+}
+.dept-section-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 20px 0 10px;
+    padding: 8px 14px;
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.dept-section-title i { font-size: 11px; opacity: 0.7; }
 
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
 .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
@@ -331,65 +349,70 @@ body.login-locked { overflow: hidden; }
 
 @media (max-width: 768px) { .chart-container { min-height: 500px; } }
 </style>
+
 </head>
 <body class="login-locked">
 
 <!-- ══════════════════════════════════════════
      LOGIN OVERLAY
 ══════════════════════════════════════════ -->
+
 <div id="loginOverlay">
     <div class="login-bg-grid"></div>
     <div class="login-bg-glow"></div>
     <div class="login-bg-glow2"></div>
 
-    <div class="login-box">
-        <div class="login-logo-wrap">
-           
-            <div class="login-brand">RUBYRED</div>
-            <div class="login-sub">HR Analytics Portal</div>
-        </div>
-
-        <div class="login-divider"></div>
-
-        <div class="login-field">
-            <i class="fa-solid fa-user login-field-icon"></i>
-            <input
-                class="login-input" type="text"
-                id="loginUsername" placeholder="Username"
-                autocomplete="off" spellcheck="false"
-                onkeydown="handleLoginKey(event)"
-            />
-        </div>
-
-        <div class="login-field">
-            <i class="fa-solid fa-lock login-field-icon"></i>
-            <input
-                class="login-input" type="password"
-                id="loginPassword" placeholder="Password"
-                autocomplete="off"
-                onkeydown="handleLoginKey(event)"
-            />
-        </div>
-
-        <button class="login-btn" id="loginBtn" onclick="doLogin()">
-            <span class="btn-text"><i class="fa-solid fa-right-to-bracket" style="margin-right:8px;"></i>Sign In</span>
-            <span class="btn-spin"><i class="fa-solid fa-circle-notch"></i></span>
-        </button>
-
-        <div class="login-error" id="loginError">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            Invalid username or password
-        </div>
-
-        <div class="login-footer">
-            <span></span> Authorized Access Only <span></span>
-        </div>
+```
+<div class="login-box">
+    <div class="login-logo-wrap">
+        <div class="login-brand">RUBYRED</div>
+        <div class="login-sub">HR Analytics Portal</div>
     </div>
+
+    <div class="login-divider"></div>
+
+    <div class="login-field">
+        <i class="fa-solid fa-user login-field-icon"></i>
+        <input
+            class="login-input" type="text"
+            id="loginUsername" placeholder="Username"
+            autocomplete="off" spellcheck="false"
+            onkeydown="handleLoginKey(event)"
+        />
+    </div>
+
+    <div class="login-field">
+        <i class="fa-solid fa-lock login-field-icon"></i>
+        <input
+            class="login-input" type="password"
+            id="loginPassword" placeholder="Password"
+            autocomplete="off"
+            onkeydown="handleLoginKey(event)"
+        />
+    </div>
+
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">
+        <span class="btn-text"><i class="fa-solid fa-right-to-bracket" style="margin-right:8px;"></i>Sign In</span>
+        <span class="btn-spin"><i class="fa-solid fa-circle-notch"></i></span>
+    </button>
+
+    <div class="login-error" id="loginError">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        Invalid username or password
+    </div>
+
+    <div class="login-footer">
+        <span></span> Authorized Access Only <span></span>
+    </div>
+</div>
+```
+
 </div>
 
 <!-- ══════════════════════════════════════════
      DASHBOARD
 ══════════════════════════════════════════ -->
+
 <header class="header">
     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
         <div class="page-title">RUBYRED ANALYTICS</div>
@@ -408,13 +431,13 @@ body.login-locked { overflow: hidden; }
 
 <div id="overviewSection">
     <div class="sec-title">Overview Summary</div>
-    <div class="kpi-grid" id="overviewKpiContainer"></div>
+    <div id="overviewKpiContainer"></div>
     <div class="charts-grid" id="overviewChartContainer"></div>
 </div>
 
 <div id="detailedSection">
     <div class="sec-title">Detailed Metrics</div>
-    <div class="kpi-grid" id="detailedKpiContainer"></div>
+    <div id="detailedKpiContainer"></div>
     <div class="sec-title">Sectional Analysis</div>
     <div class="charts-grid" id="detailedChartsContainer"></div>
 </div>
@@ -527,13 +550,12 @@ function doLogin() {
     }, 600);
 }
 
-/* Auto-focus username on load */
 window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loginUsername').focus();
 });
 
 /* ══════════════════════════════════════════
-   DASHBOARD LOGIC (unchanged)
+   DASHBOARD LOGIC
 ══════════════════════════════════════════ */
 const SHEET_ID = '1j7IFj_tylNeqwui57JU7coeB6XXj0Lt7d4yBHaqmutE';
 const API_KEY  = 'AIzaSyB_dCi6NlG_jUCUY955eynfN0gF7KobQ4A';
@@ -562,122 +584,363 @@ async function fetchData() {
     } catch(e) { console.error("Error loading data"); }
 }
 
+/*
+  ══════════════════════════════════════════════════════════
+  NEW ROW MAPPING (after adding dept-name rows):
+
+  Row index 0  → Overview dept names  (NEW — section grouping)
+  Row index 1  → Overview KPI labels  (was row 0)
+  Row index 2  → Overview KPI values  (was row 1)
+  Row index 3  → [empty / separator]  (was row 2)
+  Row index 4  → Detailed dept names  (NEW — section grouping)
+  Row index 5  → Detailed KPI labels  (was row 3 / old row 1)
+  Row index 6  → Detailed KPI values  (was row 4 / old row 2)
+  Row index 7  → Daily report names   (was row 6)
+  Row index 8  → Daily report values  (was row 7)
+  Row index 9+ → Daily detail rows    (was row 8+)
+  ══════════════════════════════════════════════════════════
+*/
 function processData(rows) {
-    const row1 = rows[0]||[], row2 = rows[1]||[], row4 = rows[3]||[], row5 = rows[4]||[];
-    const row7  = rows[6]||[];
-    const row8  = rows[7]||[];
-    const detailRows = rows.slice(8, 20);
+    // OVERVIEW (زي ما هو)
+    const overviewDeptRow  = rows[4] || [];
+    const overviewLabels   = rows[5] || [];
+    const overviewValues   = rows[6] || [];
+
+    // 🔥 SECTION ANALYSIS (الجراف الجديد من أول 3 صفوف)
+    const sectionDeptRow   = rows[0] || [];   // ممكن تستخدمه للتقسيم
+    const sectionLabels    = rows[1] || [];
+    const sectionValues    = rows[2] || [];
+
+    // DETAILED & DAILY زي ما هم
+    const detailedDeptRow  = rows[0] || [];
+    const detailedLabels   = rows[1] || [];
+    const detailedValues   = rows[2] || [];
+
+    const dailyNameRow     = rows[8] || [];
+    const dailyValueRow    = rows[9] || [];
+    const detailRows       = rows.slice(10, 24);
+
     masterData = [];
-    renderOverview(row4, row5);
-    renderDetails(row1, row2);
+
+    renderOverview(overviewDeptRow, overviewLabels, overviewValues);
+
+    // 🔥 هنا التعديل الحقيقي للجراف
+    renderSectionAnalysis(sectionDeptRow, sectionLabels, sectionValues);
+
+    renderDetails(detailedDeptRow, detailedLabels, detailedValues);
+
     fillChecklist();
     fillRatioChecklist();
-    renderDailyReport(row7, row8, detailRows);
+    renderDailyReport(dailyNameRow, dailyValueRow, detailRows);
 }
 
-function renderOverview(labels, values) {
-    const kpis = document.getElementById('overviewKpiContainer');
-    const chartsBox = document.getElementById('overviewChartContainer');
-    kpis.innerHTML = ''; chartsBox.innerHTML = '';
-    labels.forEach((l,i) => {
-        kpis.innerHTML += `<div class="kpi-card" style="--c:${colors[i%11]}"><div class="kpi-label">${l}</div><div class="kpi-val">${values[i]||0}</div></div>`;
-        masterData.push({ label: l, value: parseFloat(values[i])||0 });
+function renderSectionAnalysis(deptRow, labels, values) {
+    const container = document.getElementById('detailedChartsContainer');
+    container.innerHTML = '';
+
+    const colCount = labels.filter(l => l && l.trim() !== '').length;
+
+    const groups = groupByDept(deptRow, colCount);
+
+    const gLabels = labels.slice(0, colCount);
+    const gValues = values.slice(0, colCount);
+    const gColors = colors.slice(0, colCount);
+
+    container.innerHTML = `
+        <div class="chart-card" style="grid-column:1/-1">
+            <div class="chart-container">
+                <canvas id="canvas_section_analysis"></canvas>
+            </div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        renderMainChart(
+            'canvas_section_analysis',
+            gLabels,
+            gValues,
+            gColors
+        );
+    }, 100);
+}
+
+/* ──────────────────────────────────────────
+   Helpers: group columns by dept name
+   Returns array of { dept, indices }
+────────────────────────────────────────── */
+function groupByDept(deptRow, count) {
+    const groups = [];
+    let currentDept = null;
+    let currentGroup = null;
+
+    for (let i = 0; i < count; i++) {
+        const name = (deptRow[i] || '').trim();
+        if (name && name !== currentDept) {
+            currentDept  = name;
+            currentGroup = { dept: name, indices: [] };
+            groups.push(currentGroup);
+        }
+        if (currentGroup) currentGroup.indices.push(i);
+    }
+    return groups;
+}
+
+/* ──────────────────────────────────────────
+   OVERVIEW — grouped by dept (row 0)
+────────────────────────────────────────── */
+function renderOverview(deptRow, labels, values) {
+    const kpiContainer   = document.getElementById('overviewKpiContainer');
+    const chartsBox      = document.getElementById('overviewChartContainer');
+    kpiContainer.innerHTML = '';
+    chartsBox.innerHTML  = '';
+
+    const colCount = labels.filter(l => l && l.trim() !== '').length;
+
+    // Build masterData for all overview cols
+    labels.forEach((l, i) => {
+        if (i >= colCount) return;
+        masterData.push({ label: l, value: parseFloat(values[i]) || 0 });
     });
-    chartsBox.innerHTML = `<div class="chart-card" style="grid-column:1/-1"><div class="chart-container"><canvas id="canvas_overview"></canvas></div></div>`;
-    renderMainChart('canvas_overview', labels, values, colors.slice(0, labels.length));
+
+    const groups = groupByDept(deptRow, colCount);
+
+    // If NO dept names defined → render flat (original behaviour)
+    if (groups.length === 0) {
+        const flatGrid = document.createElement('div');
+        flatGrid.className = 'kpi-grid';
+        labels.forEach((l, i) => {
+            if (i >= colCount) return;
+            flatGrid.innerHTML += `<div class="kpi-card" style="--c:${colors[i%11]}">
+                <div class="kpi-label">${l}</div>
+                <div class="kpi-val">${values[i] || 0}</div>
+            </div>`;
+        });
+        kpiContainer.appendChild(flatGrid);
+    } else {
+        // Render a dept-section per group
+        groups.forEach(group => {
+            const deptEl = document.createElement('div');
+            deptEl.className = 'dept-section';
+            deptEl.innerHTML = `<div class="dept-section-title">
+                <i class="fa-solid fa-layer-group"></i>${group.dept}
+            </div>`;
+
+            const grid = document.createElement('div');
+            grid.className = 'kpi-grid';
+            group.indices.forEach(i => {
+                grid.innerHTML += `<div class="kpi-card" style="--c:${colors[i%11]}">
+                    <div class="kpi-label">${labels[i]}</div>
+                    <div class="kpi-val">${values[i] || 0}</div>
+                </div>`;
+            });
+            deptEl.appendChild(grid);
+            kpiContainer.appendChild(deptEl);
+        });
+    }
+
+    // Single combined chart (all columns)
+    chartsBox.innerHTML = `<div class="chart-card" style="grid-column:1/-1">
+        <div class="chart-container"><canvas id="canvas_overview"></canvas></div>
+    </div>`;
+    renderMainChart('canvas_overview',
+        labels.slice(0, colCount),
+        values.slice(0, colCount),
+        colors.slice(0, colCount));
 }
 
 function renderMainChart(canvasId, labels, data, bg) {
     const ctx = document.getElementById(canvasId).getContext('2d');
-    if(charts[canvasId]) charts[canvasId].destroy();
+    if (charts[canvasId]) charts[canvasId].destroy();
     const isMobile  = window.innerWidth <= 768;
     const textColor = getComputedStyle(document.body).getPropertyValue('--muted').trim();
     const gridColor = getComputedStyle(document.body).getPropertyValue('--grid').trim();
     charts[canvasId] = new Chart(ctx, {
-        type:'bar', plugins:[ChartDataLabels],
-        data:{ labels, datasets:[{ data, backgroundColor:bg, borderRadius:6, barThickness: isMobile?20:40 }] },
-        options:{
-            indexAxis: isMobile?'y':'x', responsive:true, maintainAspectRatio:false,
-            layout:{ padding:{ right:35, top:25, bottom:10, left:10 } },
-            plugins:{
-                legend:{ display:false },
-                datalabels:{ anchor:'end', align:'end', color: getComputedStyle(document.body).getPropertyValue('--text').trim(), offset:4, font:{ family:'Roboto Mono', weight:'700', size:11 } }
+        type: 'bar', plugins: [ChartDataLabels],
+        data: { labels, datasets: [{ data, backgroundColor: bg, borderRadius: 6, barThickness: isMobile ? 20 : 40 }] },
+        options: {
+            indexAxis: isMobile ? 'y' : 'x', responsive: true, maintainAspectRatio: false,
+            layout: { padding: { right: 35, top: 25, bottom: 10, left: 10 } },
+            plugins: {
+                legend: { display: false },
+                datalabels: { anchor: 'end', align: 'end', color: getComputedStyle(document.body).getPropertyValue('--text').trim(), offset: 4, font: { family: 'Roboto Mono', weight: '700', size: 11 } }
             },
-            scales:{
-                y:{ beginAtZero:true, grid:{ color:gridColor }, ticks:{ color:textColor, font:{ family:'Roboto Mono', size:10 } } },
-                x:{ grid:{ color:gridColor }, ticks:{ color:textColor, font:{ family:'Inter', weight:'600', size:10 } } }
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Roboto Mono', size: 10 } } },
+                x: { grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Inter', weight: '600', size: 10 } } }
             }
         }
     });
 }
 
-function renderDetails(labels, values) {
-    const kpis = document.getElementById('detailedKpiContainer');
-    const chartsBox = document.getElementById('detailedChartsContainer');
-    const dropdown  = document.getElementById('filterDropdown');
-    dropdown.innerHTML = '<option value="all">All Views</option><option value="overview">Overview Only</option>';
-    kpis.innerHTML = ''; chartsBox.innerHTML = '';
-    for (let i=0; i<labels.length; i+=3) {
-        const gLabels = labels.slice(i,i+3), gValues = values.slice(i,i+3);
-        const groupName = gLabels[0].split(' ')[0], groupID = `group_${groupName.toLowerCase()}_${i}`;
-        dropdown.innerHTML += `<option value="${groupID}">${groupName}</option>`;
-        gLabels.forEach((lbl,idx) => {
-            kpis.innerHTML += `<div class="kpi-card detail-item ${groupID}" style="--c:${colors[(i+idx)%11]}"><div class="kpi-label">${lbl}</div><div class="kpi-val">${gValues[idx]||0}</div></div>`;
-            masterData.push({ label:lbl, value: parseFloat(gValues[idx])||0 });
+/* ──────────────────────────────────────────
+   DETAILED — grouped by dept (row 4)
+────────────────────────────────────────── */
+function renderDetails(deptRow, labels, values) {
+    const kpisBox    = document.getElementById('detailedKpiContainer');
+    const chartsBox  = document.getElementById('detailedChartsContainer');
+    const dropdown   = document.getElementById('filterDropdown');
+
+    kpisBox.innerHTML   = '';
+    chartsBox.innerHTML = '';
+    dropdown.innerHTML  = '<option value="all">All Views</option><option value="overview">Overview Only</option>';
+
+    const colCount = labels.filter(l => l && l.trim() !== '').length;
+
+    // Add to masterData
+    labels.forEach((l, i) => {
+        if (i >= colCount) return;
+        masterData.push({ label: l, value: parseFloat(values[i]) || 0 });
+    });
+
+    const groups = groupByDept(deptRow, colCount);
+    
+
+    if (groups.length === 0) {
+        // Fallback: original behaviour — group every 3 cols
+        for (let i = 0; i < colCount; i += 3) {
+            const gLabels = labels.slice(i, i + 3);
+            const gValues = values.slice(i, i + 3);
+            const groupName = gLabels[0].split(' ')[0];
+            const groupID   = `group_${groupName.toLowerCase()}_${i}`;
+            dropdown.innerHTML += `<option value="${groupID}">${groupName}</option>`;
+
+            gLabels.forEach((lbl, idx) => {
+                kpisBox.innerHTML += `<div class="kpi-card detail-item ${groupID}" style="--c:${colors[(i+idx)%11]}">
+                    <div class="kpi-label">${lbl}</div>
+                    <div class="kpi-val">${gValues[idx] || 0}</div>
+                </div>`;
+            });
+
+            chartsBox.innerHTML += `<div class="chart-card detail-chart" id="card_${groupID}">
+                <div class="chart-container"><canvas id="canvas_${groupID}"></canvas></div>
+            </div>`;
+            setTimeout(() => renderSimpleChart(`canvas_${groupID}`, gLabels, gValues, colors.slice(i % 11, (i % 11) + 3)), 150);
+        }
+    } else {
+        // Dept-grouped rendering
+        groups.forEach((group, gIdx) => {
+            const groupID = `deptgroup_${group.dept.replace(/\s+/g,'_').toLowerCase()}_${gIdx}`;
+            dropdown.innerHTML += `<option value="${groupID}">${group.dept}</option>`;
+
+            const deptEl = document.createElement('div');
+            deptEl.className = 'dept-section';
+            deptEl.setAttribute('data-group', groupID);
+            deptEl.innerHTML = `<div class="dept-section-title">
+                <i class="fa-solid fa-layer-group"></i>${group.dept}
+            </div>`;
+
+            const grid = document.createElement('div');
+            grid.className = 'kpi-grid';
+            group.indices.forEach(i => {
+                grid.innerHTML += `<div class="kpi-card detail-item ${groupID}" style="--c:${colors[i%11]}">
+                    <div class="kpi-label">${labels[i]}</div>
+                    <div class="kpi-val">${values[i] || 0}</div>
+                </div>`;
+            });
+            deptEl.appendChild(grid);
+            kpisBox.appendChild(deptEl);
+
+            // Chart for this dept group
+            const gLabels = group.indices.map(i => labels[i]);
+            const gValues = group.indices.map(i => values[i]);
+            const gColors = group.indices.map(i => colors[i % 11]);
+
+            chartsBox.innerHTML += `<div class="chart-card detail-chart" id="card_${groupID}">
+                <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;font-family:'Inter',sans-serif;margin-bottom:10px;">
+                    <i class="fa-solid fa-layer-group" style="margin-right:5px;color:var(--accent);"></i>${group.dept}
+                </div>
+                <div class="chart-container"><canvas id="canvas_${groupID}"></canvas></div>
+            </div>`;
+
+            setTimeout(() => renderSimpleChart(`canvas_${groupID}`, gLabels, gValues, gColors), 150);
         });
-        chartsBox.innerHTML += `<div class="chart-card detail-chart" id="card_${groupID}"><div class="chart-container"><canvas id="canvas_${groupID}"></canvas></div></div>`;
-        setTimeout(() => renderSimpleChart(`canvas_${groupID}`, gLabels, gValues, colors.slice(i%11,(i%11)+3)), 150);
     }
 }
 
 function renderSimpleChart(canvasId, labels, data, bg) {
     const ctx = document.getElementById(canvasId).getContext('2d');
     const gridColor = getComputedStyle(document.body).getPropertyValue('--grid').trim();
-    if(charts[canvasId]) charts[canvasId].destroy();
+    if (charts[canvasId]) charts[canvasId].destroy();
     charts[canvasId] = new Chart(ctx, {
-        type:'bar', plugins:[ChartDataLabels],
-        data:{ labels, datasets:[{ data, backgroundColor:bg, borderRadius:6, barThickness:35 }] },
-        options:{
-            responsive:true, maintainAspectRatio:false,
-            plugins:{ legend:{ display:false }, datalabels:{ anchor:'end', align:'end', color: getComputedStyle(document.body).getPropertyValue('--text').trim(), font:{ family:'Roboto Mono', weight:'700', size:11 } } },
-            scales:{
-                y:{ beginAtZero:true, grid:{ color:gridColor }, ticks:{ color:'#8285a0', font:{ family:'Roboto Mono', size:10 } } },
-                x:{ grid:{ display:false }, ticks:{ color:'#8285a0', font:{ family:'Inter', weight:'600', size:10 } } }
+        type: 'bar', plugins: [ChartDataLabels],
+        data: { labels, datasets: [{ data, backgroundColor: bg, borderRadius: 6, barThickness: 35 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'end', color: getComputedStyle(document.body).getPropertyValue('--text').trim(), font: { family: 'Roboto Mono', weight: '700', size: 11 } } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: '#8285a0', font: { family: 'Roboto Mono', size: 10 } } },
+                x: { grid: { display: false }, ticks: { color: '#8285a0', font: { family: 'Inter', weight: '600', size: 10 } } }
             }
         }
     });
 }
 
+/* ──────────────────────────────────────────
+   CHECKLIST & RATIO (unchanged logic)
+────────────────────────────────────────── */
 function fillChecklist() {
     const list = document.getElementById('compareChecklist');
-    list.innerHTML = masterData.map((d,i) => `<label class="check-item"><input type="checkbox" value="${i}" onchange="updatePie()"> <span>${d.label}</span></label>`).join('');
+    list.innerHTML = masterData.map((d, i) =>
+        `<label class="check-item"><input type="checkbox" value="${i}" onchange="updatePie()"> <span>${d.label}</span></label>`
+    ).join('');
 }
 function filterChecklist() {
     const q = document.getElementById('compSearch').value.toLowerCase();
-    document.querySelectorAll('.check-item').forEach(el => el.style.display = el.innerText.toLowerCase().includes(q)?'flex':'none');
+    document.querySelectorAll('.check-item').forEach(el => el.style.display = el.innerText.toLowerCase().includes(q) ? 'flex' : 'none');
 }
 function updatePie() {
-    const checked = Array.from(document.querySelectorAll('#compareChecklist input:checked')).map(el=>el.value);
+    const checked = Array.from(document.querySelectorAll('#compareChecklist input:checked')).map(el => el.value);
     const ctx = document.getElementById('comparisonPieChart').getContext('2d');
-    if(checked.length===0){ if(pieChart) pieChart.destroy(); return; }
-    if(pieChart) pieChart.destroy();
-    pieChart = new Chart(ctx,{
-        type:'doughnut', plugins:[ChartDataLabels],
-        data:{ labels: checked.map(i=>masterData[i].label), datasets:[{ data: checked.map(i=>masterData[i].value), backgroundColor: checked.map(i=>colors[i%11]) }] },
-        options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color:'#8285a0', font:{ family:'Inter', size:10 } } }, datalabels:{ color:'#fff', font:{ family:'Roboto Mono', weight:'700' }, formatter:(v,c)=>((v*100)/c.chart.data.datasets[0].data.reduce((a,b)=>a+b,0)).toFixed(1)+"%" } } }
+    if (checked.length === 0) { if (pieChart) pieChart.destroy(); return; }
+    if (pieChart) pieChart.destroy();
+    pieChart = new Chart(ctx, {
+        type: 'doughnut', plugins: [ChartDataLabels],
+        data: { labels: checked.map(i => masterData[i].label), datasets: [{ data: checked.map(i => masterData[i].value), backgroundColor: checked.map(i => colors[i % 11]) }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#8285a0', font: { family: 'Inter', size: 10 } } }, datalabels: { color: '#fff', font: { family: 'Roboto Mono', weight: '700' }, formatter: (v, c) => ((v * 100) / c.chart.data.datasets[0].data.reduce((a, b) => a + b, 0)).toFixed(1) + "%" } } }
     });
 }
 
+/* ──────────────────────────────────────────
+   FILTER DROPDOWN
+────────────────────────────────────────── */
 function applyFilter(val) {
-    const ov = document.getElementById('overviewSection'), det = document.getElementById('detailedSection');
-    if(val==='overview'){ ov.classList.remove('hidden'); det.classList.add('hidden'); }
-    else if(val==='all'){ ov.classList.remove('hidden'); det.classList.remove('hidden'); document.querySelectorAll('.detail-item,.detail-chart').forEach(e=>e.classList.remove('hidden')); }
-    else { ov.classList.add('hidden'); det.classList.remove('hidden'); document.querySelectorAll('.detail-item').forEach(e=>e.classList.toggle('hidden',!e.classList.contains(val))); document.querySelectorAll('.detail-chart').forEach(e=>e.classList.toggle('hidden',e.id!==`card_${val}`)); }
+    const ov  = document.getElementById('overviewSection');
+    const det = document.getElementById('detailedSection');
+
+    if (val === 'overview') {
+        ov.classList.remove('hidden');
+        det.classList.add('hidden');
+    } else if (val === 'all') {
+        ov.classList.remove('hidden');
+        det.classList.remove('hidden');
+        document.querySelectorAll('.detail-item, .detail-chart').forEach(e => e.classList.remove('hidden'));
+        document.querySelectorAll('#detailedKpiContainer .dept-section').forEach(e => e.classList.remove('hidden'));
+    } else {
+        // val is a groupID
+        ov.classList.add('hidden');
+        det.classList.remove('hidden');
+
+        // KPI cards
+        document.querySelectorAll('.detail-item').forEach(e =>
+            e.classList.toggle('hidden', !e.classList.contains(val))
+        );
+        // Dept section wrappers
+        document.querySelectorAll('#detailedKpiContainer .dept-section').forEach(e =>
+            e.classList.toggle('hidden', e.getAttribute('data-group') !== val)
+        );
+        // Charts
+        document.querySelectorAll('.detail-chart').forEach(e =>
+            e.classList.toggle('hidden', e.id !== `card_${val}`)
+        );
+    }
 }
 
+/* ──────────────────────────────────────────
+   RATIO ANALYSIS (unchanged)
+────────────────────────────────────────── */
 function fillRatioChecklist() {
     const list = document.getElementById('ratioChecklist');
-    list.innerHTML = masterData.map((d,i) =>
+    list.innerHTML = masterData.map((d, i) =>
         `<label class="ratio-check-item" id="ratioItem_${i}">
             <input type="checkbox" value="${i}" onchange="updateRatioPie()">
             <span style="flex:1;">${d.label}</span>
@@ -688,7 +951,7 @@ function fillRatioChecklist() {
 function filterRatioChecklist() {
     const q = document.getElementById('ratioSearch').value.toLowerCase();
     document.querySelectorAll('#ratioChecklist .ratio-check-item').forEach(el => {
-        el.style.display = el.innerText.toLowerCase().includes(q)?'flex':'none';
+        el.style.display = el.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
     });
 }
 function updateRatioPie() {
@@ -696,49 +959,59 @@ function updateRatioPie() {
     const placeholder   = document.getElementById('ratioPiePlaceholder');
     const statsBox      = document.getElementById('ratioStats');
     const ctx           = document.getElementById('ratioPieChart').getContext('2d');
-    document.querySelectorAll('#ratioChecklist .ratio-check-item').forEach(el=>el.classList.remove('is-base'));
-    if(checkedInputs.length===0){
-        if(ratioPieChart){ ratioPieChart.destroy(); ratioPieChart=null; }
-        placeholder.style.display='flex'; statsBox.style.display='none'; return;
+    document.querySelectorAll('#ratioChecklist .ratio-check-item').forEach(el => el.classList.remove('is-base'));
+    if (checkedInputs.length === 0) {
+        if (ratioPieChart) { ratioPieChart.destroy(); ratioPieChart = null; }
+        placeholder.style.display = 'flex'; statsBox.style.display = 'none'; return;
     }
     const baseIdx  = parseInt(checkedInputs[0].value);
     const baseItem = masterData[baseIdx], baseValue = baseItem.value;
     document.getElementById(`ratioItem_${baseIdx}`).classList.add('is-base');
-    const subItems = checkedInputs.slice(1).map(inp=>masterData[parseInt(inp.value)]);
-    const pieLabels=[],pieValues=[],pieColors=[]; let sumOfParts=0;
-    subItems.forEach((item,idx) => { pieLabels.push(item.label); pieValues.push(item.value); pieColors.push(colors[(idx+1)%11]); sumOfParts+=item.value; });
+    const subItems = checkedInputs.slice(1).map(inp => masterData[parseInt(inp.value)]);
+    const pieLabels = [], pieValues = [], pieColors = []; let sumOfParts = 0;
+    subItems.forEach((item, idx) => { pieLabels.push(item.label); pieValues.push(item.value); pieColors.push(colors[(idx + 1) % 11]); sumOfParts += item.value; });
     const remaining = baseValue - sumOfParts;
-    if(subItems.length>0 && remaining>0){ pieLabels.push('Remaining'); pieValues.push(remaining); pieColors.push('rgba(130,133,160,0.35)'); }
-    placeholder.style.display='none';
-    if(ratioPieChart){ ratioPieChart.destroy(); ratioPieChart=null; }
-    if(subItems.length===0){
-        placeholder.style.display='flex';
-        placeholder.innerHTML=`<i class="fa-solid fa-hand-pointer" style="font-size:28px;opacity:0.25;"></i><span style="font-size:12px;">اختر عناصر إضافية لمقارنتها بـ <strong>${baseItem.label}</strong></span>`;
-        statsBox.style.display='none'; return;
+    if (subItems.length > 0 && remaining > 0) { pieLabels.push('Remaining'); pieValues.push(remaining); pieColors.push('rgba(130,133,160,0.35)'); }
+    placeholder.style.display = 'none';
+    if (ratioPieChart) { ratioPieChart.destroy(); ratioPieChart = null; }
+    if (subItems.length === 0) {
+        placeholder.style.display = 'flex';
+        placeholder.innerHTML = `<i class="fa-solid fa-hand-pointer" style="font-size:28px;opacity:0.25;"></i><span style="font-size:12px;">اختر عناصر إضافية لمقارنتها بـ <strong>${baseItem.label}</strong></span>`;
+        statsBox.style.display = 'none'; return;
     }
-    ratioPieChart = new Chart(ctx,{
-        type:'doughnut', plugins:[ChartDataLabels],
-        data:{ labels:pieLabels, datasets:[{ data:pieValues, backgroundColor:pieColors, borderWidth:2, borderColor:'var(--surface)' }] },
-        options:{ responsive:true, maintainAspectRatio:false, cutout:'52%', plugins:{ legend:{ position:'bottom', labels:{ color:'#8285a0', font:{ family:'Inter', size:10 }, padding:12, usePointStyle:true } }, datalabels:{ color:'#fff', font:{ family:'Roboto Mono', weight:'700', size:11 }, formatter:(v)=>{ if(baseValue===0) return '0%'; return ((v/baseValue)*100).toFixed(1)+'%'; }, display:(ctx)=>{ const v=ctx.dataset.data[ctx.dataIndex]; return baseValue>0&&(v/baseValue)>=0.03; } }, tooltip:{ callbacks:{ label:(ctx)=>{ const v=ctx.parsed,pct=baseValue>0?((v/baseValue)*100).toFixed(1):0; return ` ${ctx.label}: ${v.toLocaleString()} (${pct}% of ${baseItem.label})`; } } } } }
+    ratioPieChart = new Chart(ctx, {
+        type: 'doughnut', plugins: [ChartDataLabels],
+        data: { labels: pieLabels, datasets: [{ data: pieValues, backgroundColor: pieColors, borderWidth: 2, borderColor: 'var(--surface)' }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '52%', plugins: { legend: { position: 'bottom', labels: { color: '#8285a0', font: { family: 'Inter', size: 10 }, padding: 12, usePointStyle: true } }, datalabels: { color: '#fff', font: { family: 'Roboto Mono', weight: '700', size: 11 }, formatter: (v) => { if (baseValue === 0) return '0%'; return ((v / baseValue) * 100).toFixed(1) + '%'; }, display: (ctx) => { const v = ctx.dataset.data[ctx.dataIndex]; return baseValue > 0 && (v / baseValue) >= 0.03; } }, tooltip: { callbacks: { label: (ctx) => { const v = ctx.parsed, pct = baseValue > 0 ? ((v / baseValue) * 100).toFixed(1) : 0; return ` ${ctx.label}: ${v.toLocaleString()} (${pct}% of ${baseItem.label})`; } } } } }
     });
-    let statsHTML=`<div class="ratio-stat-row"><span class="ratio-stat-label" style="color:#f3524a;">⬤ ${baseItem.label} (BASE)</span><span class="ratio-stat-val" style="color:#f3524a;">${baseValue.toLocaleString()}</span></div>`;
-    subItems.forEach((item,idx)=>{ const pct=baseValue>0?((item.value/baseValue)*100).toFixed(1):0; statsHTML+=`<div class="ratio-stat-row"><span class="ratio-stat-label" style="color:${colors[(idx+1)%11]}">⬤ ${item.label}</span><span class="ratio-stat-val">${item.value.toLocaleString()} &nbsp;<span style="color:${colors[(idx+1)%11]};font-size:11px;">${pct}%</span></span></div>`; });
-    if(remaining>0){ const remPct=((remaining/baseValue)*100).toFixed(1); statsHTML+=`<div class="ratio-stat-row"><span class="ratio-stat-label">⬤ Remaining</span><span class="ratio-stat-val">${remaining.toLocaleString()} &nbsp;<span style="color:var(--muted);font-size:11px;">${remPct}%</span></span></div>`; }
-    statsBox.innerHTML=statsHTML; statsBox.style.display='flex';
+    let statsHTML = `<div class="ratio-stat-row"><span class="ratio-stat-label" style="color:#f3524a;">⬤ ${baseItem.label} (BASE)</span><span class="ratio-stat-val" style="color:#f3524a;">${baseValue.toLocaleString()}</span></div>`;
+    subItems.forEach((item, idx) => { const pct = baseValue > 0 ? ((item.value / baseValue) * 100).toFixed(1) : 0; statsHTML += `<div class="ratio-stat-row"><span class="ratio-stat-label" style="color:${colors[(idx + 1) % 11]}">⬤ ${item.label}</span><span class="ratio-stat-val">${item.value.toLocaleString()} &nbsp;<span style="color:${colors[(idx + 1) % 11]};font-size:11px;">${pct}%</span></span></div>`; });
+    if (remaining > 0) { const remPct = ((remaining / baseValue) * 100).toFixed(1); statsHTML += `<div class="ratio-stat-row"><span class="ratio-stat-label">⬤ Remaining</span><span class="ratio-stat-val">${remaining.toLocaleString()} &nbsp;<span style="color:var(--muted);font-size:11px;">${remPct}%</span></span></div>`; }
+    statsBox.innerHTML = statsHTML; statsBox.style.display = 'flex';
 }
 
+/* ──────────────────────────────────────────
+   DAILY REPORT (row indices shifted +2)
+────────────────────────────────────────── */
 function renderDailyReport(nameRow, valueRow, detailRows) {
     const container = document.getElementById('dailyCardsContainer');
     container.innerHTML = '';
-    const cardCount = nameRow.filter(n=>n&&n.trim()!=='').length;
-    if(cardCount===0) return;
-    const cardNames=nameRow.slice(0,cardCount), cardValues=valueRow.slice(0,cardCount);
-    const detailsPerCard = cardNames.map((_,colIdx)=>detailRows.map(row=>(row[colIdx]||'').trim()).filter(cell=>cell!==''));
-    cardNames.forEach((name,i)=>{
-        const color=dailyCardColors[i]||dailyCardColors[dailyCardColors.length-1];
-        const icon=dailyIcons[i]||'fa-circle-dot', val=cardValues[i]||'0', details=detailsPerCard[i];
-        const detailsHTML=details.length?details.map(d=>`<div class="detail-item-row">${d}</div>`).join(''):`<div class="detail-empty">No details available</div>`;
-        container.innerHTML+=`
+    const cardCount = nameRow.filter(n => n && n.trim() !== '').length;
+    if (cardCount === 0) return;
+    const cardNames  = nameRow.slice(0, cardCount);
+    const cardValues = valueRow.slice(0, cardCount);
+    const detailsPerCard = cardNames.map((_, colIdx) =>
+        detailRows.map(row => (row[colIdx] || '').trim()).filter(cell => cell !== '')
+    );
+    cardNames.forEach((name, i) => {
+        const color   = dailyCardColors[i] || dailyCardColors[dailyCardColors.length - 1];
+        const icon    = dailyIcons[i] || 'fa-circle-dot';
+        const val     = cardValues[i] || '0';
+        const details = detailsPerCard[i];
+        const detailsHTML = details.length
+            ? details.map(d => `<div class="detail-item-row">${d}</div>`).join('')
+            : `<div class="detail-empty">No details available</div>`;
+        container.innerHTML += `
             <div class="daily-card" id="dcard_${i}" style="--dc:${color};" onclick="toggleDailyCard(${i})">
                 <div class="daily-card-header">
                     <div class="daily-card-left">
@@ -751,7 +1024,7 @@ function renderDailyReport(nameRow, valueRow, detailRows) {
                 <div class="daily-card-details" id="ddetails_${i}">${detailsHTML}</div>
             </div>`;
     });
-    renderDailyCharts(cardNames, cardValues.map(v=>parseFloat(v)||0));
+    renderDailyCharts(cardNames, cardValues.map(v => parseFloat(v) || 0));
 }
 
 function toggleDailyCard(idx) {
@@ -759,29 +1032,35 @@ function toggleDailyCard(idx) {
 }
 
 function renderDailyCharts(labels, values) {
-    const textColor=getComputedStyle(document.body).getPropertyValue('--muted').trim();
-    const gridColor=getComputedStyle(document.body).getPropertyValue('--grid').trim();
-    const textFull =getComputedStyle(document.body).getPropertyValue('--text').trim();
-    const bgColors =labels.map((_,i)=>dailyCardColors[i]||dailyCardColors[dailyCardColors.length-1]);
-    if(dailyBarChart)  { dailyBarChart.destroy();   dailyBarChart=null; }
-    if(dailyDonutChart){ dailyDonutChart.destroy(); dailyDonutChart=null; }
+    const textColor = getComputedStyle(document.body).getPropertyValue('--muted').trim();
+    const gridColor = getComputedStyle(document.body).getPropertyValue('--grid').trim();
+    const textFull  = getComputedStyle(document.body).getPropertyValue('--text').trim();
+    const bgColors  = labels.map((_, i) => dailyCardColors[i] || dailyCardColors[dailyCardColors.length - 1]);
+    if (dailyBarChart)   { dailyBarChart.destroy();   dailyBarChart   = null; }
+    if (dailyDonutChart) { dailyDonutChart.destroy(); dailyDonutChart = null; }
     const barCtx = document.getElementById('dailyBarChart').getContext('2d');
-    dailyBarChart = new Chart(barCtx,{
-        type:'bar', plugins:[ChartDataLabels],
-        data:{ labels, datasets:[{ data:values, backgroundColor:bgColors, borderRadius:8, barThickness:32 }] },
-        options:{ responsive:true, maintainAspectRatio:false, layout:{ padding:{ top:22, right:12 } }, plugins:{ legend:{ display:false }, datalabels:{ anchor:'end', align:'end', color:textFull, font:{ family:'Roboto Mono', weight:'700', size:11 }, offset:2 } }, scales:{ y:{ beginAtZero:true, grid:{ color:gridColor }, ticks:{ color:textColor, font:{ family:'Roboto Mono', size:10 } } }, x:{ grid:{ display:false }, ticks:{ color:textColor, font:{ family:'Inter', weight:'600', size:10 } } } } }
+    dailyBarChart = new Chart(barCtx, {
+        type: 'bar', plugins: [ChartDataLabels],
+        data: { labels, datasets: [{ data: values, backgroundColor: bgColors, borderRadius: 8, barThickness: 32 }] },
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 22, right: 12 } }, plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'end', color: textFull, font: { family: 'Roboto Mono', weight: '700', size: 11 }, offset: 2 } }, scales: { y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Roboto Mono', size: 10 } } }, x: { grid: { display: false }, ticks: { color: textColor, font: { family: 'Inter', weight: '600', size: 10 } } } } }
     });
-    const totalValue=values[0]||0, donutSlices=labels.slice(1,4), donutValues=values.slice(1,4), donutColors=bgColors.slice(1,4);
-    const sumSlices=donutValues.reduce((a,b)=>a+b,0), remaining=Math.max(0,totalValue-sumSlices);
-    if(remaining>0){ donutSlices.push('Remaining'); donutValues.push(remaining); donutColors.push('rgba(130,133,160,0.25)'); }
+    const totalValue   = values[0] || 0;
+    const donutSlices  = labels.slice(1, 4);
+    const donutValues  = values.slice(1, 4);
+    const donutColors  = bgColors.slice(1, 4);
+    const sumSlices    = donutValues.reduce((a, b) => a + b, 0);
+    const remaining    = Math.max(0, totalValue - sumSlices);
+    if (remaining > 0) { donutSlices.push('Remaining'); donutValues.push(remaining); donutColors.push('rgba(130,133,160,0.25)'); }
     const donutCtx = document.getElementById('dailyDonutChart').getContext('2d');
-    dailyDonutChart = new Chart(donutCtx,{
-        type:'doughnut', plugins:[ChartDataLabels],
-        data:{ labels:donutSlices, datasets:[{ data:donutValues, backgroundColor:donutColors, borderWidth:2, borderColor:'var(--surface)', hoverOffset:6 }] },
-        options:{ responsive:true, maintainAspectRatio:false, cutout:'58%', plugins:{ legend:{ position:'bottom', labels:{ color:textColor, font:{ family:'Inter', size:10 }, padding:10, usePointStyle:true } }, datalabels:{ color:'#fff', font:{ family:'Roboto Mono', weight:'700', size:11 }, formatter:(v)=>{ if(totalValue===0) return ''; const pct=((v/totalValue)*100).toFixed(1); return parseFloat(pct)>=4?pct+'%':''; } }, tooltip:{ callbacks:{ label:(ctx)=>{ const v=ctx.parsed,pct=totalValue>0?((v/totalValue)*100).toFixed(1):0; return ` ${ctx.label}: ${v} (${pct}% of ${labels[0]||'Total'})`; } } } } }
+    dailyDonutChart = new Chart(donutCtx, {
+        type: 'doughnut', plugins: [ChartDataLabels],
+        data: { labels: donutSlices, datasets: [{ data: donutValues, backgroundColor: donutColors, borderWidth: 2, borderColor: 'var(--surface)', hoverOffset: 6 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '58%', plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { family: 'Inter', size: 10 }, padding: 10, usePointStyle: true } }, datalabels: { color: '#fff', font: { family: 'Roboto Mono', weight: '700', size: 11 }, formatter: (v) => { if (totalValue === 0) return ''; const pct = ((v / totalValue) * 100).toFixed(1); return parseFloat(pct) >= 4 ? pct + '%' : ''; } }, tooltip: { callbacks: { label: (ctx) => { const v = ctx.parsed, pct = totalValue > 0 ? ((v / totalValue) * 100).toFixed(1) : 0; return ` ${ctx.label}: ${v} (${pct}% of ${labels[0] || 'Total'})`; } } } } }
     });
 }
 
-
 fetchData();
-</script></document-content></document>
+</script>
+
+</body>
+</html>
