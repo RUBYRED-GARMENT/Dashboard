@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>RUBYRED Turnover Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Roboto+Mono:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #07080d; --surface: #0e1018; --surface2: #151720;
+  --border: rgba(255,255,255,0.06); --text: #e8eaf2; --muted: #8285a0;
+  --accent: #6c63ff; --radius: 16px; --grid: rgba(255,255,255,0.03);
+  --shortage: #f3524a; --surplus: #ffb020; --fine: #0fd493;
+}
+body.light-mode {
+  --bg: #f4f7fa; --surface: #ffffff; --surface2: #fcfcfd;
+  --border: rgba(0,0,0,0.08); --text: #1a1d23; --muted: #64748b;
+  --accent: #4f46e5; --grid: rgba(0,0,0,0.05);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.3s, color 0.3s, border-color 0.3s; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+body.login-locked { overflow: hidden; }
+html[dir="rtl"] body { font-family: 'DM Sans', 'Inter', sans-serif; }
+
+/* ══════════ LOGIN OVERLAY ══════════ */
+#loginOverlay { position: fixed; inset: 0; z-index: 9999; background: #07080d; display: flex; align-items: center; justify-content: center; transition: opacity .65s ease, visibility .65s ease; }
+#loginOverlay.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
+.login-bg-grid { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.login-bg-grid::before { content:''; position:absolute; inset:-50%; background-image: linear-gradient(rgba(108,99,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(108,99,255,0.07) 1px, transparent 1px); background-size: 52px 52px; animation: gridShift 24s linear infinite; }
+.login-bg-glow { position:absolute; width:700px; height:700px; border-radius:50%; background: radial-gradient(circle, rgba(108,99,255,0.11) 0%, transparent 68%); top:50%; left:50%; transform:translate(-50%,-50%); animation: glowPulse 4.5s ease-in-out infinite; }
+.login-bg-glow2 { position:absolute; width:400px; height:400px; border-radius:50%; background: radial-gradient(circle, rgba(243,82,74,0.07) 0%, transparent 70%); bottom:10%; right:15%; animation: glowPulse 6s ease-in-out infinite reverse; }
+@keyframes gridShift { to { transform: translate(52px,52px); } }
+@keyframes glowPulse { 0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1);} 50%{opacity:1;transform:translate(-50%,-50%) scale(1.07);} }
+.login-box { position:relative; z-index:1; background: rgba(14,16,24,0.94); border:1px solid rgba(108,99,255,0.22); border-radius:26px; padding:46px 50px 42px; width:100%; max-width:430px; margin:0 20px; box-shadow:0 0 0 1px rgba(255,255,255,0.035),0 36px 90px -14px rgba(0,0,0,0.85),0 0 70px rgba(108,99,255,0.07); backdrop-filter: blur(24px); animation: slideUp .55s cubic-bezier(.34,1.5,.64,1) both; }
+@keyframes slideUp { from{opacity:0;transform:translateY(30px) scale(.96);} to{opacity:1;transform:translateY(0) scale(1);} }
+.login-logo-wrap { display:flex; flex-direction:column; align-items:center; gap:6px; margin-bottom:38px; }
+.login-brand { font-family:'Inter',sans-serif; font-size:24px; font-weight:800; letter-spacing:4px; background: linear-gradient(90deg,#8b85ff 0%,#f3524a 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.login-sub { font-size:10.5px; color: rgba(130,133,160,0.65); font-family:'Inter',sans-serif; letter-spacing:2px; text-transform:uppercase; font-weight:600; margin-top:2px; }
+.login-divider { height:1px; background: linear-gradient(90deg, transparent, rgba(108,99,255,0.2), transparent); margin-bottom:26px; }
+.login-field { position:relative; margin-bottom:14px; }
+.login-field-icon { position:absolute; left:16px; top:50%; transform:translateY(-50%); color: rgba(130,133,160,0.55); font-size:13.5px; pointer-events:none; z-index:1; }
+.login-input { width:100%; padding:15px 16px 15px 46px; background: rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.07); border-radius:13px; color:#e8eaf2; font-size:14px; font-family:'DM Sans',sans-serif; font-weight:500; outline:none; letter-spacing:.5px; }
+.login-input::placeholder { color: rgba(130,133,160,0.4); }
+.login-input:focus { border-color: rgba(108,99,255,0.5); background: rgba(108,99,255,0.04); box-shadow: 0 0 0 3px rgba(108,99,255,0.1); }
+.login-field:focus-within .login-field-icon { color:#6c63ff; }
+#loginPassword { letter-spacing:3px; }
+#loginPassword::placeholder { letter-spacing:.5px; }
+.login-btn { width:100%; padding:16px; background: linear-gradient(135deg,#6c63ff 0%,#f3524a 100%); color:#fff; border:none; border-radius:13px; font-size:13px; font-weight:800; font-family:'Inter',sans-serif; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; margin-top:10px; position:relative; overflow:hidden; box-shadow:0 6px 26px rgba(108,99,255,0.38); }
+.login-btn:hover { transform: translateY(-2px); box-shadow:0 12px 36px rgba(108,99,255,0.48); }
+.login-btn.loading { opacity:.65; pointer-events:none; }
+.login-btn .btn-spin { display:none; }
+.login-btn.loading .btn-text { opacity:0; }
+.login-btn.loading .btn-spin { display:inline-block; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.login-error { display:none; margin-top:14px; background: rgba(243,82,74,0.09); border:1px solid rgba(243,82,74,0.28); border-radius:11px; padding:11px 16px; font-size:12px; color:#f3524a; font-family:'Inter',sans-serif; font-weight:600; text-align:center; }
+.login-error.show { display:flex; align-items:center; justify-content:center; gap:8px; animation: shake .38s cubic-bezier(.36,.07,.19,.97); }
+@keyframes shake { 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(4px);} 30%,50%,70%{transform:translateX(-6px);} 40%,60%{transform:translateX(6px);} }
+.login-footer { margin-top:28px; text-align:center; font-size:10px; color: rgba(130,133,160,0.32); font-family:'Inter',sans-serif; letter-spacing:1.2px; text-transform:uppercase; }
+.login-footer span { display:inline-block; width:20px; height:1px; background: rgba(130,133,160,0.2); vertical-align:middle; margin:0 8px; }
+
+/* ══════════ HEADER ══════════ */
+.header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; position:sticky; top:0; z-index:100; background: var(--bg); backdrop-filter: blur(12px); margin-bottom:20px; margin-top:-20px; padding:20px 0 14px; }
+.header-left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.page-title { font-family:'Inter',sans-serif; font-size:20px; font-weight:800; color: var(--accent); letter-spacing:-.5px; }
+.page-title small { display:block; font-size:10px; font-weight:700; color: var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:2px; }
+.icon-btn { background: var(--surface2); color: var(--text); border:1px solid var(--border); width:38px; height:38px; border-radius:10px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
+.pill-select { background: var(--surface2); color: var(--text); border:1px solid var(--border); padding:9px 14px; border-radius:10px; font-weight:600; cursor:pointer; outline:none; font-size:12.5px; font-family:'Inter',sans-serif; }
+.header-right { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+/* ══════════ FILTER BAR ══════════ */
+.filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:14px 16px; margin-bottom:22px; }
+
+/* ══════════ KPI GRID ══════════ */
+.kpi-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap:12px; margin-bottom: 24px; }
+.kpi-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:16px 18px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); position:relative; overflow:hidden; }
+.kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: var(--c); }
+html[dir="rtl"] .kpi-card::before { left:0; right:0; }
+.kpi-label { font-size:10px; font-weight:700; color: var(--muted); text-transform:uppercase; margin-bottom:8px; font-family:'Inter',sans-serif; letter-spacing:.5px; }
+.kpi-val { font-family:'Roboto Mono',monospace; font-size:25px; font-weight:700; color: var(--c); }
+.kpi-sub { font-size:10.5px; color: var(--muted); margin-top:4px; font-family:'Inter',sans-serif; }
+
+/* ══════════ CHARTS ══════════ */
+.sec-title { font-family:'Inter',sans-serif; font-size:11px; letter-spacing:1.5px; color: var(--muted); text-transform:uppercase; margin:26px 0 12px; border-bottom:1px solid var(--border); padding-bottom:5px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.charts-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(340px,1fr)); gap:20px; }
+.chart-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:20px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); }
+.chart-card-title { font-size:11px; font-weight:700; color: var(--muted); text-transform:uppercase; letter-spacing:1.2px; font-family:'Inter',sans-serif; margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+.chart-container { position:relative; height:300px; }
+
+/* ══════════ REASON RANK TABLE ══════════ */
+.reason-rank { display:flex; flex-direction:column; gap:10px; }
+.reason-row { display:flex; align-items:center; gap:12px; }
+.reason-name { min-width:120px; font-size:12px; font-weight:700; font-family:'Inter',sans-serif; color: var(--text); }
+.reason-bar-track { flex:1; height:14px; background: var(--surface2); border-radius:8px; overflow:hidden; border:1px solid var(--border); }
+.reason-bar-fill { height:100%; background: linear-gradient(90deg,#6c63ff,#f3524a); border-radius:8px; }
+.reason-count { min-width:60px; text-align:right; font-family:'Roboto Mono',monospace; font-size:12.5px; font-weight:700; color: var(--muted); }
+html[dir="rtl"] .reason-count { text-align:left; }
+
+.no-results { text-align:center; padding:50px 20px; color: var(--muted); font-family:'Inter',sans-serif; }
+.no-results i { font-size:34px; opacity:.2; display:block; margin-bottom:10px; }
+
+@media (max-width:768px){ .chart-container{ height:260px; } }
+</style>
+</head>
+<body class="login-locked">
+
+<!-- ══════════ LOGIN OVERLAY ══════════ -->
+<div id="loginOverlay">
+    <div class="login-bg-grid"></div>
+    <div class="login-bg-glow"></div>
+    <div class="login-bg-glow2"></div>
+    <div class="login-box">
+        <div class="login-logo-wrap">
+            <div class="login-brand">RUBYRED</div>
+            <div class="login-sub" id="t_loginSub">Turnover Analysis Portal</div>
+        </div>
+        <div class="login-divider"></div>
+        <div class="login-field">
+            <i class="fa-solid fa-user login-field-icon"></i>
+            <input class="login-input" type="text" id="loginUsername" placeholder="Username" autocomplete="off" spellcheck="false" onkeydown="handleLoginKey(event)"/>
+        </div>
+        <div class="login-field">
+            <i class="fa-solid fa-lock login-field-icon"></i>
+            <input class="login-input" type="password" id="loginPassword" placeholder="Password" autocomplete="off" onkeydown="handleLoginKey(event)"/>
+        </div>
+        <button class="login-btn" id="loginBtn" onclick="doLogin()">
+            <span class="btn-text" id="t_signIn"><i class="fa-solid fa-right-to-bracket" style="margin-right:8px;"></i>Sign In</span>
+            <span class="btn-spin"><i class="fa-solid fa-circle-notch"></i></span>
+        </button>
+        <div class="login-error" id="loginError">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span id="t_invalid">Invalid username or password</span>
+        </div>
+        <div class="login-footer"><span></span><span id="t_authOnly">Authorized Access Only</span><span></span></div>
+    </div>
+</div>
+
+<!-- ══════════ HEADER ══════════ -->
+<header class="header">
+    <div class="header-left">
+        <div class="page-title">RUBYRED <small id="t_headerSub">Turnover Dashboard</small></div>
+    </div>
+    <div class="header-right">
+        <a href="index.html" class="icon-btn" style="width:auto; padding:0 14px; gap:8px; text-decoration:none; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:700;" title="Main Dashboard">
+            <i class="fa-solid fa-house"></i><span id="t_mainDashboard">Main Dashboard</span>
+        </a>
+        <select class="pill-select" id="langSelect" onchange="setLanguage(this.value)">
+            <option value="en">EN — English</option>
+            <option value="tr">TR — Türkçe</option>
+            <option value="ar">AR — العربية</option>
+        </select>
+        <button class="icon-btn" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-sun"></i></button>
+        <button class="icon-btn" onclick="fetchData()" title="Refresh"><i class="fa-solid fa-rotate"></i></button>
+    </div>
+</header>
+
+<!-- ══════════ FILTER BAR ══════════ -->
+<div class="filter-bar">
+    <select class="pill-select" id="deptFilter" onchange="renderDashboard()">
+        <option value="all" id="t_allFactory">All Factory</option>
+    </select>
+    <select class="pill-select" id="periodFilter" onchange="renderDashboard()">
+        <option value="all" id="t_pAll">All Time</option>
+        <option value="3" id="t_p3">Last 3 Months</option>
+        <option value="6" id="t_p6">Last 6 Months</option>
+        <option value="12" id="t_p12">Last 12 Months</option>
+    </select>
+</div>
+
+<!-- ══════════ KPI SUMMARY ══════════ -->
+<div class="kpi-grid" id="kpiContainer"></div>
+
+<!-- ══════════ CHARTS ══════════ -->
+<div class="sec-title"><i class="fa-solid fa-chart-column"></i><span id="t_chartsHeader">Overview Charts</span></div>
+<div class="charts-grid">
+    <div class="chart-card" style="grid-column:1/-1">
+        <div class="chart-card-title"><i class="fa-solid fa-chart-line" style="color:#6c63ff"></i><span id="t_chart1">Turnover Rate Trend (%)</span></div>
+        <div class="chart-container"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+        <div class="chart-card-title"><i class="fa-solid fa-right-left" style="color:#0fd493"></i><span id="t_chart2">Joiners vs Left</span></div>
+        <div class="chart-container"><canvas id="flowChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+        <div class="chart-card-title"><i class="fa-solid fa-chart-pie" style="color:#f3524a"></i><span id="t_chart3">Leaving Reasons Breakdown</span></div>
+        <div class="chart-container"><canvas id="reasonDonut"></canvas></div>
+    </div>
+    <div class="chart-card" id="deptCompareCard" style="grid-column:1/-1">
+        <div class="chart-card-title"><i class="fa-solid fa-building" style="color:#ffb020"></i><span id="t_chart4">Turnover Rate by Department (Latest Month)</span></div>
+        <div class="chart-container"><canvas id="deptCompareChart"></canvas></div>
+    </div>
+    <div class="chart-card" style="grid-column:1/-1">
+        <div class="chart-card-title"><i class="fa-solid fa-ranking-star" style="color:#a78bfa"></i><span id="t_chart5">Top Leaving Reasons (Ranked)</span></div>
+        <div class="reason-rank" id="reasonRank"></div>
+    </div>
+</div>
+
+<script>
+/* ══════════ LOGIN ══════════ */
+const VALID_USER = 'RUBYRED';
+const VALID_PASS = 'HR000000';
+
+function handleLoginKey(e){ if(e.key==='Enter') doLogin(); }
+function doLogin(){
+    const user = document.getElementById('loginUsername').value.trim();
+    const pass = document.getElementById('loginPassword').value.trim();
+    const btn = document.getElementById('loginBtn');
+    const err = document.getElementById('loginError');
+    err.classList.remove('show');
+    btn.classList.add('loading');
+    setTimeout(()=>{
+        btn.classList.remove('loading');
+        if(user===VALID_USER && pass===VALID_PASS){
+            const overlay = document.getElementById('loginOverlay');
+            overlay.classList.add('fade-out');
+            document.body.classList.remove('login-locked');
+            setTimeout(()=>{ overlay.style.display='none'; },700);
+        } else {
+            err.classList.add('show');
+            document.getElementById('loginPassword').value='';
+            document.getElementById('loginPassword').focus();
+        }
+    },600);
+}
+window.addEventListener('DOMContentLoaded', ()=>{ document.getElementById('loginUsername').focus(); applyTranslations(); });
+
+/* ══════════ GOOGLE SHEET CONFIG ══════════
+   Tab name: turnover
+   Row 1 = header. Columns:
+   A = Month              (format YYYY-MM, e.g. 2026-01)
+   B = Department          (must match your 10 department names)
+   C = Headcount Start
+   D = Joiners
+   E = Left                (total leavers this month for this department)
+   F = Headcount End
+   G onward = ANY number of "reason" columns. The column header text
+       IS the reason name (e.g. "Another Job", "Marriage", "Absence"...).
+       Add or remove reason columns freely — the dashboard reads them
+       automatically from row 1, no code changes needed.
+   Left should equal the sum of all reason columns in that row.
+═══════════════════════════════════════════════ */
+const SHEET_ID = '1j7IFj_tylNeqwui57JU7coeB6XXj0Lt7d4yBHaqmutE';
+const API_KEY  = 'AIzaSyB_dCi6NlG_jUCUY955eynfN0gF7KobQ4A';
+const RANGE    = 'turnover!A1:Z300';
+
+const deptColors = ['#6c63ff','#0fd493','#f3524a','#4594f5','#ff8c40','#f065b8','#a78bfa','#00d2ff','#fbbf24','#f87171'];
+
+let reasonLabels = [];   // dynamic list of reason column names, in sheet order
+let rawRows = [];        // {month, dept, start, joiners, left, end, reasons:{name:val}}
+let charts = {};
+
+/* ══════════ FETCH & PARSE ══════════ */
+async function fetchData(){
+    try{
+        const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`);
+        const data = await res.json();
+        if(data.values) parseRows(data.values);
+    }catch(e){ console.error('Error loading sheet data', e); }
+}
+
+function parseRows(rows){
+    const header = rows[0] || [];
+    reasonLabels = header.slice(6).map(h=>(h||'').trim()).filter(h=>h);
+    const body = rows.slice(1);
+    rawRows = [];
+    body.forEach(r=>{
+        const month = (r[0]||'').trim();
+        const dept  = (r[1]||'').trim();
+        if(!month || !dept) return;
+        const start = parseFloat(r[2]) || 0;
+        const joiners = parseFloat(r[3]) || 0;
+        const left = parseFloat(r[4]) || 0;
+        const end = parseFloat(r[5]) || 0;
+        const reasons = {};
+        reasonLabels.forEach((label,i)=>{ reasons[label] = parseFloat(r[6+i]) || 0; });
+        rawRows.push({ month, dept, start, joiners, left, end, reasons });
+    });
+    populateDeptFilter();
+    renderDashboard();
+}
+
+function populateDeptFilter(){
+    const sel = document.getElementById('deptFilter');
+    const current = sel.value;
+    const depts = [...new Set(rawRows.map(r=>r.dept))];
+    sel.innerHTML = `<option value="all" id="t_allFactory">${T('allFactory')}</option>` +
+        depts.map(d=>`<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+    if(depts.includes(current)) sel.value = current;
+}
+
+function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function getScopedRows(){
+    const deptSel = document.getElementById('deptFilter').value;
+    const period = document.getElementById('periodFilter').value;
+    let rows = deptSel==='all' ? rawRows : rawRows.filter(r=>r.dept===deptSel);
+    if(period!=='all'){
+        const months = [...new Set(rows.map(r=>r.month))].sort();
+        const keep = new Set(months.slice(-parseInt(period)));
+        rows = rows.filter(r=>keep.has(r.month));
+    }
+    return rows;
+}
+
+/* ══════════ RENDER ══════════ */
+function renderDashboard(){
+    const scoped = getScopedRows();
+    renderKPIs(scoped);
+    renderCharts(scoped);
+}
+
+function aggregateByMonth(rows){
+    const map = {};
+    rows.forEach(r=>{
+        if(!map[r.month]) map[r.month] = { start:0, joiners:0, left:0, end:0, reasons:{} };
+        map[r.month].start += r.start;
+        map[r.month].joiners += r.joiners;
+        map[r.month].left += r.left;
+        map[r.month].end += r.end;
+        reasonLabels.forEach(label=>{ map[r.month].reasons[label] = (map[r.month].reasons[label]||0) + (r.reasons[label]||0); });
+    });
+    return map;
+}
+
+function turnoverRate(start,end,left){
+    const avg = (start+end)/2;
+    return avg>0 ? (left/avg)*100 : 0;
+}
+
+function renderKPIs(scoped){
+    if(scoped.length===0){
+        document.getElementById('kpiContainer').innerHTML = `<div class="no-results" style="grid-column:1/-1"><i class="fa-solid fa-inbox"></i>${T('noResults')}</div>`;
+        return;
+    }
+    const totalStart = scoped.reduce((a,r)=>a+r.start,0);
+    const totalEnd = scoped.reduce((a,r)=>a+r.end,0);
+    const totalJoiners = scoped.reduce((a,r)=>a+r.joiners,0);
+    const totalLeft = scoped.reduce((a,r)=>a+r.left,0);
+    const rate = turnoverRate(totalStart,totalEnd,totalLeft);
+    const net = totalEnd - totalStart;
+
+    const reasonTotals = {};
+    reasonLabels.forEach(label=>{ reasonTotals[label] = scoped.reduce((a,r)=>a+(r.reasons[label]||0),0); });
+    let topReason = '—', topVal = 0;
+    Object.entries(reasonTotals).forEach(([label,val])=>{ if(val>topVal){ topVal=val; topReason=label; } });
+
+    const cards = [
+        { c:'#f3524a', label:T('kpiTurnoverRate'), val: rate.toFixed(1)+'%', sub:T('kpiOverall') },
+        { c:'#0fd493', label:T('kpiJoiners'), val: totalJoiners.toLocaleString(), sub:T('kpiPeople') },
+        { c:'#ffb020', label:T('kpiLeft'), val: totalLeft.toLocaleString(), sub:T('kpiPeople') },
+        { c: net<0 ? '#f3524a' : net>0 ? '#0fd493' : '#ffb020', label:T('kpiNetChange'), val:(net>0?'+':'')+net, sub:T('kpiHeadcount') },
+        { c:'#6c63ff', label:T('kpiTopReason'), val: topVal>0 ? topReason : '—', sub: topVal>0 ? (topVal+' '+T('kpiCases')) : T('kpiNoData') },
+    ];
+    document.getElementById('kpiContainer').innerHTML = cards.map(c=>`
+        <div class="kpi-card" style="--c:${c.c}">
+            <div class="kpi-label">${c.label}</div>
+            <div class="kpi-val" style="${c.label===T('kpiTopReason') ? 'font-size:17px' : ''}">${c.val}</div>
+            <div class="kpi-sub">${c.sub}</div>
+        </div>`).join('');
+}
+
+/* ══════════ CHARTS ══════════ */
+function renderCharts(scoped){
+    const textColor = getComputedStyle(document.body).getPropertyValue('--muted').trim();
+    const gridColor = getComputedStyle(document.body).getPropertyValue('--grid').trim();
+    const textFull  = getComputedStyle(document.body).getPropertyValue('--text').trim();
+
+    // 1) Trend chart: turnover rate % by month for scoped selection
+    const byMonth = aggregateByMonth(scoped);
+    const months = Object.keys(byMonth).sort();
+    const rateData = months.map(m=>turnoverRate(byMonth[m].start, byMonth[m].end, byMonth[m].left));
+
+    if(charts.trend) charts.trend.destroy();
+    charts.trend = new Chart(document.getElementById('trendChart').getContext('2d'), {
+        type:'line', plugins:[ChartDataLabels],
+        data:{ labels: months, datasets:[{ label:T('kpiTurnoverRate'), data:rateData, borderColor:'#f3524a', backgroundColor:'rgba(243,82,74,0.12)', fill:true, tension:.35, pointRadius:4, pointBackgroundColor:'#f3524a' }] },
+        options:{ responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{display:false}, datalabels:{ align:'top', color:textFull, font:{family:'Roboto Mono', weight:'700', size:10}, formatter:(v)=>v.toFixed(1)+'%' } },
+            scales:{ y:{ beginAtZero:true, grid:{color:gridColor}, ticks:{color:textColor, font:{family:'Roboto Mono', size:10}, callback:(v)=>v+'%'} },
+                     x:{ grid:{display:false}, ticks:{color:textColor, font:{family:'Inter', weight:'600', size:9}} } } }
+    });
+
+    // 2) Joiners vs Left by month
+    const joinersData = months.map(m=>byMonth[m].joiners);
+    const leftData = months.map(m=>byMonth[m].left);
+
+    if(charts.flow) charts.flow.destroy();
+    charts.flow = new Chart(document.getElementById('flowChart').getContext('2d'), {
+        type:'bar', plugins:[ChartDataLabels],
+        data:{ labels: months, datasets:[
+            { label:T('kpiJoiners'), data:joinersData, backgroundColor:'#0fd493', borderRadius:5 },
+            { label:T('kpiLeft'), data:leftData, backgroundColor:'#f3524a', borderRadius:5 }
+        ]},
+        options:{ responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ position:'bottom', labels:{ color:textColor, font:{family:'Inter', size:10} } }, datalabels:{ display:false } },
+            scales:{ y:{ beginAtZero:true, grid:{color:gridColor}, ticks:{color:textColor, font:{family:'Roboto Mono', size:10}} },
+                     x:{ grid:{display:false}, ticks:{color:textColor, font:{family:'Inter', weight:'600', size:9}} } } }
+    });
+
+    // 3) Reason donut
+    const reasonTotals = {};
+    reasonLabels.forEach(label=>{ reasonTotals[label] = scoped.reduce((a,r)=>a+(r.reasons[label]||0),0); });
+    const reasonEntries = Object.entries(reasonTotals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+    const donutColors = ['#f3524a','#ffb020','#6c63ff','#0fd493','#4594f5','#ff8c40','#f065b8','#a78bfa','#00d2ff','#fbbf24'];
+
+    if(charts.reasonDonut) charts.reasonDonut.destroy();
+    charts.reasonDonut = new Chart(document.getElementById('reasonDonut').getContext('2d'), {
+        type:'doughnut', plugins:[ChartDataLabels],
+        data:{ labels: reasonEntries.map(e=>e[0]), datasets:[{ data: reasonEntries.map(e=>e[1]), backgroundColor: reasonEntries.map((_,i)=>donutColors[i%donutColors.length]), borderWidth:2, borderColor:'var(--surface)' }] },
+        options:{ responsive:true, maintainAspectRatio:false, cutout:'58%',
+            plugins:{ legend:{ position:'bottom', labels:{ color:textColor, font:{family:'Inter', size:10}, usePointStyle:true } },
+                datalabels:{ color:'#fff', font:{family:'Roboto Mono', weight:'700', size:11}, formatter:(v,ctx)=>{ const total=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return total>0 ? ((v/total)*100).toFixed(0)+'%' : ''; }, display:(ctx)=>ctx.dataset.data[ctx.dataIndex]>0 } } }
+    });
+
+    // 4) Department comparison (latest month) — only meaningful for "All Factory"
+    const deptSel = document.getElementById('deptFilter').value;
+    const compareCard = document.getElementById('deptCompareCard');
+    if(deptSel==='all'){
+        compareCard.style.display = '';
+        const latestMonth = months[months.length-1];
+        const latestRows = scoped.filter(r=>r.month===latestMonth);
+        const depts = [...new Set(latestRows.map(r=>r.dept))];
+        const deptRates = depts.map(d=>{
+            const row = latestRows.find(r=>r.dept===d);
+            return row ? turnoverRate(row.start,row.end,row.left) : 0;
+        });
+        if(charts.deptCompare) charts.deptCompare.destroy();
+        charts.deptCompare = new Chart(document.getElementById('deptCompareChart').getContext('2d'), {
+            type:'bar', plugins:[ChartDataLabels],
+            data:{ labels: depts, datasets:[{ data: deptRates, backgroundColor: depts.map((_,i)=>deptColors[i%deptColors.length]), borderRadius:5 }] },
+            options:{ responsive:true, maintainAspectRatio:false,
+                plugins:{ legend:{display:false}, datalabels:{ anchor:'end', align:'top', color:textFull, font:{family:'Roboto Mono', weight:'700', size:10}, formatter:(v)=>v.toFixed(1)+'%' } },
+                scales:{ y:{ beginAtZero:true, grid:{color:gridColor}, ticks:{color:textColor, font:{family:'Roboto Mono', size:10}, callback:(v)=>v+'%'} },
+                         x:{ grid:{display:false}, ticks:{color:textColor, font:{family:'Inter', weight:'600', size:9}} } } }
+        });
+    } else {
+        compareCard.style.display = 'none';
+    }
+
+    // 5) Reason ranking bars
+    const maxCount = reasonEntries.length ? reasonEntries[0][1] : 0;
+    const rankHtml = reasonEntries.length ? reasonEntries.map(([label,val])=>`
+        <div class="reason-row">
+            <div class="reason-name">${escapeHtml(label)}</div>
+            <div class="reason-bar-track"><div class="reason-bar-fill" style="width:${maxCount>0 ? (val/maxCount*100) : 0}%"></div></div>
+            <div class="reason-count">${val}</div>
+        </div>`).join('') : `<div class="no-results"><i class="fa-solid fa-inbox"></i>${T('noResults')}</div>`;
+    document.getElementById('reasonRank').innerHTML = rankHtml;
+}
+
+/* ══════════ THEME ══════════ */
+function toggleTheme(){
+    const body = document.body, icon = document.getElementById('themeIcon');
+    body.classList.toggle('light-mode');
+    icon.classList.toggle('fa-sun', !body.classList.contains('light-mode'));
+    icon.classList.toggle('fa-moon', body.classList.contains('light-mode'));
+    renderDashboard();
+}
+
+/* ══════════ I18N ══════════ */
+const I18N = {
+en: {
+    loginSub:'Turnover Analysis Portal', signIn:'Sign In', invalid:'Invalid username or password', authOnly:'Authorized Access Only',
+    headerSub:'Turnover Dashboard', mainDashboard:'Main Dashboard', allFactory:'All Factory',
+    pAll:'All Time', p3:'Last 3 Months', p6:'Last 6 Months', p12:'Last 12 Months',
+    chartsHeader:'Overview Charts', chart1:'Turnover Rate Trend (%)', chart2:'Joiners vs Left', chart3:'Leaving Reasons Breakdown',
+    chart4:'Turnover Rate by Department (Latest Month)', chart5:'Top Leaving Reasons (Ranked)',
+    noResults:'No data found for the current filters.',
+    kpiTurnoverRate:'Turnover Rate', kpiJoiners:'Joiners', kpiLeft:'Left', kpiNetChange:'Net Change', kpiTopReason:'Top Reason',
+    kpiOverall:'overall rate', kpiPeople:'people', kpiHeadcount:'headcount', kpiCases:'cases', kpiNoData:'no data yet'
+},
+tr: {
+    loginSub:'Devir Analizi Portalı', signIn:'Giriş Yap', invalid:'Kullanıcı adı veya şifre hatalı', authOnly:'Yalnızca Yetkili Erişim',
+    headerSub:'Devir Paneli', mainDashboard:'Ana Panel', allFactory:'Tüm Fabrika',
+    pAll:'Tüm Zamanlar', p3:'Son 3 Ay', p6:'Son 6 Ay', p12:'Son 12 Ay',
+    chartsHeader:'Genel Bakış Grafikleri', chart1:'Devir Oranı Trendi (%)', chart2:'İşe Girenler vs Ayrılanlar', chart3:'Ayrılma Sebepleri Dağılımı',
+    chart4:'Departmana Göre Devir Oranı (Son Ay)', chart5:'En Sık Ayrılma Sebepleri (Sıralı)',
+    noResults:'Seçili filtrelerle eşleşen veri bulunamadı.',
+    kpiTurnoverRate:'Devir Oranı', kpiJoiners:'İşe Girenler', kpiLeft:'Ayrılanlar', kpiNetChange:'Net Değişim', kpiTopReason:'En Sık Sebep',
+    kpiOverall:'genel oran', kpiPeople:'kişi', kpiHeadcount:'personel', kpiCases:'vaka', kpiNoData:'veri yok'
+},
+ar: {
+    loginSub:'بوابة تحليل معدل الدوران', signIn:'تسجيل الدخول', invalid:'اسم المستخدم أو كلمة المرور غير صحيحة', authOnly:'دخول مصرح به فقط',
+    headerSub:'داشبورد معدل الدوران', mainDashboard:'الداشبورد الرئيسي', allFactory:'المصنع بالكامل',
+    pAll:'كل الفترة', p3:'آخر 3 شهور', p6:'آخر 6 شهور', p12:'آخر 12 شهر',
+    chartsHeader:'الرسوم البيانية العامة', chart1:'اتجاه معدل الدوران (%)', chart2:'الملتحقون مقابل التاركين', chart3:'توزيع أسباب ترك العمل',
+    chart4:'معدل الدوران حسب القسم (آخر شهر)', chart5:'أكثر أسباب الترك تكرارًا (مرتبة)',
+    noResults:'لا توجد بيانات مطابقة للفلاتر الحالية.',
+    kpiTurnoverRate:'معدل الدوران', kpiJoiners:'الملتحقون', kpiLeft:'التاركون', kpiNetChange:'صافي التغيير', kpiTopReason:'أكثر سبب',
+    kpiOverall:'المعدل الكلي', kpiPeople:'موظف', kpiHeadcount:'عدد الموظفين', kpiCases:'حالة', kpiNoData:'لا توجد بيانات'
+}
+};
+let currentLang = 'en';
+function T(key){ return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key; }
+
+function setLanguage(lang){
+    currentLang = lang;
+    document.documentElement.setAttribute('dir', lang==='ar' ? 'rtl' : 'ltr');
+    document.getElementById('langSelect').value = lang;
+    applyTranslations();
+    populateDeptFilter();
+    renderDashboard();
+}
+
+function applyTranslations(){
+    document.getElementById('t_loginSub').textContent = T('loginSub');
+    document.getElementById('t_signIn').innerHTML = `<i class="fa-solid fa-right-to-bracket" style="margin-right:8px;"></i>${T('signIn')}`;
+    document.getElementById('t_invalid').textContent = T('invalid');
+    document.getElementById('t_authOnly').textContent = T('authOnly');
+    document.getElementById('t_headerSub').textContent = T('headerSub');
+    document.getElementById('t_mainDashboard').textContent = T('mainDashboard');
+    document.getElementById('t_allFactory').textContent = T('allFactory');
+    document.getElementById('t_pAll').textContent = T('pAll');
+    document.getElementById('t_p3').textContent = T('p3');
+    document.getElementById('t_p6').textContent = T('p6');
+    document.getElementById('t_p12').textContent = T('p12');
+    document.getElementById('t_chartsHeader').textContent = T('chartsHeader');
+    document.getElementById('t_chart1').textContent = T('chart1');
+    document.getElementById('t_chart2').textContent = T('chart2');
+    document.getElementById('t_chart3').textContent = T('chart3');
+    document.getElementById('t_chart4').textContent = T('chart4');
+    document.getElementById('t_chart5').textContent = T('chart5');
+}
+
+fetchData();
+</script>
+</body>
+</html>
