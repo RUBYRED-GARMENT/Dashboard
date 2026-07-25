@@ -72,9 +72,18 @@ html[dir="rtl"] body { font-family: 'DM Sans', 'Inter', sans-serif; }
 
 /* ══════════ FILTER BAR ══════════ */
 .filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:14px 16px; margin-bottom:22px; }
+.filter-label { font-size:10px; font-weight:700; color: var(--muted); text-transform:uppercase; letter-spacing:.5px; font-family:'Inter',sans-serif; margin-right:2px; }
+.period-toggle-group { display:flex; gap:6px; flex-wrap:wrap; }
+.period-toggle { border:1px solid var(--border); background: var(--surface2); color: var(--muted); padding:8px 14px; border-radius:20px; font-size:11.5px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; letter-spacing:.3px; }
+.period-toggle.active { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); color: var(--accent); }
+
+/* ══════════ SECTION HEADERS ══════════ */
+.sec-title { font-family:'Inter',sans-serif; font-size:11px; letter-spacing:1.5px; color: var(--muted); text-transform:uppercase; margin:26px 0 12px; border-bottom:1px solid var(--border); padding-bottom:5px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.sec-title .month-badge { margin-left:auto; font-family:'Roboto Mono',monospace; font-size:11px; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); padding:3px 10px; border-radius:12px; letter-spacing:0; text-transform:none; }
+html[dir="rtl"] .sec-title .month-badge { margin-left:0; margin-right:auto; }
 
 /* ══════════ KPI GRID ══════════ */
-.kpi-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap:12px; margin-bottom: 24px; }
+.kpi-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap:12px; margin-bottom: 10px; }
 .kpi-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:16px 18px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); position:relative; overflow:hidden; }
 .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: var(--c); }
 html[dir="rtl"] .kpi-card::before { left:0; right:0; }
@@ -83,7 +92,6 @@ html[dir="rtl"] .kpi-card::before { left:0; right:0; }
 .kpi-sub { font-size:10.5px; color: var(--muted); margin-top:4px; font-family:'Inter',sans-serif; }
 
 /* ══════════ CHARTS ══════════ */
-.sec-title { font-family:'Inter',sans-serif; font-size:11px; letter-spacing:1.5px; color: var(--muted); text-transform:uppercase; margin:26px 0 12px; border-bottom:1px solid var(--border); padding-bottom:5px; font-weight:700; display:flex; align-items:center; gap:8px; }
 .charts-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(340px,1fr)); gap:20px; }
 .chart-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:20px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); }
 .chart-card-title { font-size:11px; font-weight:700; color: var(--muted); text-transform:uppercase; letter-spacing:1.2px; font-family:'Inter',sans-serif; margin-bottom:14px; display:flex; align-items:center; gap:6px; }
@@ -158,18 +166,29 @@ html[dir="rtl"] .reason-count { text-align:left; }
 
 <!-- ══════════ FILTER BAR ══════════ -->
 <div class="filter-bar">
+    <span class="filter-label" id="t_labelDept">Department</span>
     <select class="pill-select" id="deptFilter" onchange="renderDashboard()">
         <option value="all" id="t_allFactory">All Factory</option>
     </select>
-    <select class="pill-select" id="periodFilter" onchange="renderDashboard()">
-        <option value="all" id="t_pAll">All Time</option>
-        <option value="3" id="t_p3">Last 3 Months</option>
-        <option value="6" id="t_p6">Last 6 Months</option>
-        <option value="12" id="t_p12">Last 12 Months</option>
-    </select>
+
+    <span class="filter-label" id="t_labelMonth">Month</span>
+    <select class="pill-select" id="monthFilter" onchange="renderDashboard()"></select>
+
+    <span class="filter-label" id="t_labelPeriod">Period (for overall + charts)</span>
+    <div class="period-toggle-group" id="periodToggleGroup">
+        <button class="period-toggle active" data-p="all" onclick="setPeriodFilter('all')"><span id="t_pAll">All Time</span></button>
+        <button class="period-toggle" data-p="3" onclick="setPeriodFilter('3')"><span id="t_p3">Last 3 Months</span></button>
+        <button class="period-toggle" data-p="6" onclick="setPeriodFilter('6')"><span id="t_p6">Last 6 Months</span></button>
+        <button class="period-toggle" data-p="12" onclick="setPeriodFilter('12')"><span id="t_p12">Last 12 Months</span></button>
+    </div>
 </div>
 
-<!-- ══════════ KPI SUMMARY ══════════ -->
+<!-- ══════════ THIS MONTH SECTION ══════════ -->
+<div class="sec-title"><i class="fa-solid fa-calendar-day"></i><span id="t_monthSection">This Month</span><span class="month-badge" id="monthBadge">—</span></div>
+<div class="kpi-grid" id="monthKpiContainer"></div>
+
+<!-- ══════════ OVERALL SECTION ══════════ -->
+<div class="sec-title"><i class="fa-solid fa-chart-simple"></i><span id="t_overallSection">Overall Summary</span><span class="month-badge" id="periodBadge">—</span></div>
 <div class="kpi-grid" id="kpiContainer"></div>
 
 <!-- ══════════ CHARTS ══════════ -->
@@ -188,7 +207,7 @@ html[dir="rtl"] .reason-count { text-align:left; }
         <div class="chart-container"><canvas id="reasonDonut"></canvas></div>
     </div>
     <div class="chart-card" id="deptCompareCard" style="grid-column:1/-1">
-        <div class="chart-card-title"><i class="fa-solid fa-building" style="color:#ffb020"></i><span id="t_chart4">Turnover Rate by Department (Latest Month)</span></div>
+        <div class="chart-card-title"><i class="fa-solid fa-building" style="color:#ffb020"></i><span id="t_chart4">Turnover Rate by Department (Latest Month in Period)</span></div>
         <div class="chart-container"><canvas id="deptCompareChart"></canvas></div>
     </div>
     <div class="chart-card" style="grid-column:1/-1">
@@ -250,6 +269,7 @@ const deptColors = ['#6c63ff','#0fd493','#f3524a','#4594f5','#ff8c40','#f065b8',
 let reasonLabels = [];   // dynamic list of reason column names, in sheet order
 let rawRows = [];        // {month, dept, start, joiners, left, end, reasons:{name:val}}
 let charts = {};
+let periodFilter = 'all';
 
 /* ══════════ FETCH & PARSE ══════════ */
 async function fetchData(){
@@ -278,6 +298,7 @@ function parseRows(rows){
         rawRows.push({ month, dept, start, joiners, left, end, reasons });
     });
     populateDeptFilter();
+    populateMonthFilter();
     renderDashboard();
 }
 
@@ -290,26 +311,57 @@ function populateDeptFilter(){
     if(depts.includes(current)) sel.value = current;
 }
 
+function populateMonthFilter(){
+    const sel = document.getElementById('monthFilter');
+    const current = sel.value;
+    const months = [...new Set(rawRows.map(r=>r.month))].sort();
+    sel.innerHTML = months.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+    if(months.includes(current)) sel.value = current;
+    else if(months.length) sel.value = months[months.length-1]; // default to latest month
+}
+
+function setPeriodFilter(p){
+    periodFilter = p;
+    document.querySelectorAll('.period-toggle').forEach(el=>{
+        el.classList.toggle('active', el.getAttribute('data-p')===p);
+    });
+    renderDashboard();
+}
+
 function escapeHtml(str){
     return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-function getScopedRows(){
+/* Rows scoped by Department + Period toggle (used for Overall section + charts) */
+function getPeriodRows(){
     const deptSel = document.getElementById('deptFilter').value;
-    const period = document.getElementById('periodFilter').value;
     let rows = deptSel==='all' ? rawRows : rawRows.filter(r=>r.dept===deptSel);
-    if(period!=='all'){
+    if(periodFilter!=='all'){
         const months = [...new Set(rows.map(r=>r.month))].sort();
-        const keep = new Set(months.slice(-parseInt(period)));
+        const keep = new Set(months.slice(-parseInt(periodFilter)));
         rows = rows.filter(r=>keep.has(r.month));
     }
     return rows;
 }
 
+/* Rows scoped by Department + the single selected Month (used for This Month section) */
+function getMonthRows(){
+    const deptSel = document.getElementById('deptFilter').value;
+    const monthSel = document.getElementById('monthFilter').value;
+    let rows = deptSel==='all' ? rawRows : rawRows.filter(r=>r.dept===deptSel);
+    return rows.filter(r=>r.month===monthSel);
+}
+
 /* ══════════ RENDER ══════════ */
 function renderDashboard(){
-    const scoped = getScopedRows();
-    renderKPIs(scoped);
+    const monthSel = document.getElementById('monthFilter').value;
+    document.getElementById('monthBadge').textContent = monthSel || '—';
+    const periodLabelKey = periodFilter==='all' ? 'pAll' : periodFilter==='3' ? 'p3' : periodFilter==='6' ? 'p6' : 'p12';
+    document.getElementById('periodBadge').textContent = T(periodLabelKey);
+
+    renderMonthKPIs(getMonthRows());
+    const scoped = getPeriodRows();
+    renderOverallKPIs(scoped);
     renderCharts(scoped);
 }
 
@@ -331,7 +383,36 @@ function turnoverRate(start,end,left){
     return avg>0 ? (left/avg)*100 : 0;
 }
 
-function renderKPIs(scoped){
+/* ══════════ THIS MONTH KPI CARDS ══════════ */
+function renderMonthKPIs(monthRows){
+    const container = document.getElementById('monthKpiContainer');
+    if(monthRows.length===0){
+        container.innerHTML = `<div class="no-results" style="grid-column:1/-1"><i class="fa-solid fa-inbox"></i>${T('noResults')}</div>`;
+        return;
+    }
+    const totalStart = monthRows.reduce((a,r)=>a+r.start,0);
+    const totalEnd = monthRows.reduce((a,r)=>a+r.end,0);
+    const totalJoiners = monthRows.reduce((a,r)=>a+r.joiners,0);
+    const totalLeft = monthRows.reduce((a,r)=>a+r.left,0);
+    const net = totalEnd - totalStart;
+    const rate = turnoverRate(totalStart,totalEnd,totalLeft);
+
+    const cards = [
+        { c:'#0fd493', label:T('kpiJoiners'), val: totalJoiners.toLocaleString(), sub:T('kpiPeople') },
+        { c:'#f3524a', label:T('kpiLeft'), val: totalLeft.toLocaleString(), sub:T('kpiPeople') },
+        { c: net<0 ? '#f3524a' : net>0 ? '#0fd493' : '#ffb020', label:T('kpiNetChange'), val:(net>0?'+':'')+net, sub:T('kpiHeadcount') },
+        { c:'#6c63ff', label:T('kpiTurnoverRate'), val: rate.toFixed(1)+'%', sub:T('kpiThisMonth') },
+    ];
+    container.innerHTML = cards.map(c=>`
+        <div class="kpi-card" style="--c:${c.c}">
+            <div class="kpi-label">${c.label}</div>
+            <div class="kpi-val">${c.val}</div>
+            <div class="kpi-sub">${c.sub}</div>
+        </div>`).join('');
+}
+
+/* ══════════ OVERALL KPI CARDS ══════════ */
+function renderOverallKPIs(scoped){
     if(scoped.length===0){
         document.getElementById('kpiContainer').innerHTML = `<div class="no-results" style="grid-column:1/-1"><i class="fa-solid fa-inbox"></i>${T('noResults')}</div>`;
         return;
@@ -353,12 +434,12 @@ function renderKPIs(scoped){
         { c:'#0fd493', label:T('kpiJoiners'), val: totalJoiners.toLocaleString(), sub:T('kpiPeople') },
         { c:'#ffb020', label:T('kpiLeft'), val: totalLeft.toLocaleString(), sub:T('kpiPeople') },
         { c: net<0 ? '#f3524a' : net>0 ? '#0fd493' : '#ffb020', label:T('kpiNetChange'), val:(net>0?'+':'')+net, sub:T('kpiHeadcount') },
-        { c:'#6c63ff', label:T('kpiTopReason'), val: topVal>0 ? topReason : '—', sub: topVal>0 ? (topVal+' '+T('kpiCases')) : T('kpiNoData') },
+        { c:'#6c63ff', label:T('kpiTopReason'), val: topVal>0 ? topReason : '—', sub: topVal>0 ? (topVal+' '+T('kpiCases')) : T('kpiNoData'), small:true },
     ];
     document.getElementById('kpiContainer').innerHTML = cards.map(c=>`
         <div class="kpi-card" style="--c:${c.c}">
             <div class="kpi-label">${c.label}</div>
-            <div class="kpi-val" style="${c.label===T('kpiTopReason') ? 'font-size:17px' : ''}">${c.val}</div>
+            <div class="kpi-val" style="${c.small ? 'font-size:17px' : ''}">${c.val}</div>
             <div class="kpi-sub">${c.sub}</div>
         </div>`).join('');
 }
@@ -416,7 +497,7 @@ function renderCharts(scoped){
                 datalabels:{ color:'#fff', font:{family:'Roboto Mono', weight:'700', size:11}, formatter:(v,ctx)=>{ const total=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return total>0 ? ((v/total)*100).toFixed(0)+'%' : ''; }, display:(ctx)=>ctx.dataset.data[ctx.dataIndex]>0 } } }
     });
 
-    // 4) Department comparison (latest month) — only meaningful for "All Factory"
+    // 4) Department comparison (latest month within period) — only meaningful for "All Factory"
     const deptSel = document.getElementById('deptFilter').value;
     const compareCard = document.getElementById('deptCompareCard');
     if(deptSel==='all'){
@@ -466,32 +547,38 @@ const I18N = {
 en: {
     loginSub:'Turnover Analysis Portal', signIn:'Sign In', invalid:'Invalid username or password', authOnly:'Authorized Access Only',
     headerSub:'Turnover Dashboard', mainDashboard:'Main Dashboard', allFactory:'All Factory',
+    labelDept:'Department', labelMonth:'Month', labelPeriod:'Period (for overall + charts)',
     pAll:'All Time', p3:'Last 3 Months', p6:'Last 6 Months', p12:'Last 12 Months',
+    monthSection:'This Month', overallSection:'Overall Summary',
     chartsHeader:'Overview Charts', chart1:'Turnover Rate Trend (%)', chart2:'Joiners vs Left', chart3:'Leaving Reasons Breakdown',
-    chart4:'Turnover Rate by Department (Latest Month)', chart5:'Top Leaving Reasons (Ranked)',
+    chart4:'Turnover Rate by Department (Latest Month in Period)', chart5:'Top Leaving Reasons (Ranked)',
     noResults:'No data found for the current filters.',
     kpiTurnoverRate:'Turnover Rate', kpiJoiners:'Joiners', kpiLeft:'Left', kpiNetChange:'Net Change', kpiTopReason:'Top Reason',
-    kpiOverall:'overall rate', kpiPeople:'people', kpiHeadcount:'headcount', kpiCases:'cases', kpiNoData:'no data yet'
+    kpiOverall:'selected period', kpiThisMonth:'this month', kpiPeople:'people', kpiHeadcount:'headcount', kpiCases:'cases', kpiNoData:'no data yet'
 },
 tr: {
     loginSub:'Devir Analizi Portalı', signIn:'Giriş Yap', invalid:'Kullanıcı adı veya şifre hatalı', authOnly:'Yalnızca Yetkili Erişim',
     headerSub:'Devir Paneli', mainDashboard:'Ana Panel', allFactory:'Tüm Fabrika',
+    labelDept:'Departman', labelMonth:'Ay', labelPeriod:'Dönem (genel özet + grafikler için)',
     pAll:'Tüm Zamanlar', p3:'Son 3 Ay', p6:'Son 6 Ay', p12:'Son 12 Ay',
+    monthSection:'Bu Ay', overallSection:'Genel Özet',
     chartsHeader:'Genel Bakış Grafikleri', chart1:'Devir Oranı Trendi (%)', chart2:'İşe Girenler vs Ayrılanlar', chart3:'Ayrılma Sebepleri Dağılımı',
-    chart4:'Departmana Göre Devir Oranı (Son Ay)', chart5:'En Sık Ayrılma Sebepleri (Sıralı)',
+    chart4:'Departmana Göre Devir Oranı (Dönem İçindeki Son Ay)', chart5:'En Sık Ayrılma Sebepleri (Sıralı)',
     noResults:'Seçili filtrelerle eşleşen veri bulunamadı.',
     kpiTurnoverRate:'Devir Oranı', kpiJoiners:'İşe Girenler', kpiLeft:'Ayrılanlar', kpiNetChange:'Net Değişim', kpiTopReason:'En Sık Sebep',
-    kpiOverall:'genel oran', kpiPeople:'kişi', kpiHeadcount:'personel', kpiCases:'vaka', kpiNoData:'veri yok'
+    kpiOverall:'seçili dönem', kpiThisMonth:'bu ay', kpiPeople:'kişi', kpiHeadcount:'personel', kpiCases:'vaka', kpiNoData:'veri yok'
 },
 ar: {
     loginSub:'بوابة تحليل معدل الدوران', signIn:'تسجيل الدخول', invalid:'اسم المستخدم أو كلمة المرور غير صحيحة', authOnly:'دخول مصرح به فقط',
     headerSub:'داشبورد معدل الدوران', mainDashboard:'الداشبورد الرئيسي', allFactory:'المصنع بالكامل',
+    labelDept:'القسم', labelMonth:'الشهر', labelPeriod:'الفترة (للإجمالي والرسوم البيانية)',
     pAll:'كل الفترة', p3:'آخر 3 شهور', p6:'آخر 6 شهور', p12:'آخر 12 شهر',
+    monthSection:'هذا الشهر', overallSection:'الملخص العام',
     chartsHeader:'الرسوم البيانية العامة', chart1:'اتجاه معدل الدوران (%)', chart2:'الملتحقون مقابل التاركين', chart3:'توزيع أسباب ترك العمل',
-    chart4:'معدل الدوران حسب القسم (آخر شهر)', chart5:'أكثر أسباب الترك تكرارًا (مرتبة)',
+    chart4:'معدل الدوران حسب القسم (آخر شهر في الفترة)', chart5:'أكثر أسباب الترك تكرارًا (مرتبة)',
     noResults:'لا توجد بيانات مطابقة للفلاتر الحالية.',
     kpiTurnoverRate:'معدل الدوران', kpiJoiners:'الملتحقون', kpiLeft:'التاركون', kpiNetChange:'صافي التغيير', kpiTopReason:'أكثر سبب',
-    kpiOverall:'المعدل الكلي', kpiPeople:'موظف', kpiHeadcount:'عدد الموظفين', kpiCases:'حالة', kpiNoData:'لا توجد بيانات'
+    kpiOverall:'الفترة المحددة', kpiThisMonth:'هذا الشهر', kpiPeople:'موظف', kpiHeadcount:'عدد الموظفين', kpiCases:'حالة', kpiNoData:'لا توجد بيانات'
 }
 };
 let currentLang = 'en';
@@ -503,6 +590,7 @@ function setLanguage(lang){
     document.getElementById('langSelect').value = lang;
     applyTranslations();
     populateDeptFilter();
+    populateMonthFilter();
     renderDashboard();
 }
 
@@ -514,10 +602,15 @@ function applyTranslations(){
     document.getElementById('t_headerSub').textContent = T('headerSub');
     document.getElementById('t_mainDashboard').textContent = T('mainDashboard');
     document.getElementById('t_allFactory').textContent = T('allFactory');
+    document.getElementById('t_labelDept').textContent = T('labelDept');
+    document.getElementById('t_labelMonth').textContent = T('labelMonth');
+    document.getElementById('t_labelPeriod').textContent = T('labelPeriod');
     document.getElementById('t_pAll').textContent = T('pAll');
     document.getElementById('t_p3').textContent = T('p3');
     document.getElementById('t_p6').textContent = T('p6');
     document.getElementById('t_p12').textContent = T('p12');
+    document.getElementById('t_monthSection').textContent = T('monthSection');
+    document.getElementById('t_overallSection').textContent = T('overallSection');
     document.getElementById('t_chartsHeader').textContent = T('chartsHeader');
     document.getElementById('t_chart1').textContent = T('chart1');
     document.getElementById('t_chart2').textContent = T('chart2');
