@@ -165,6 +165,9 @@ html[dir="rtl"] .dept-block { border-left:1px solid var(--border); border-right:
         <div class="page-title">RUBYRED <small id="t_headerSub">Manpower Planning</small></div>
     </div>
     <div class="header-right">
+        <a href="index.html" class="icon-btn" style="width:auto; padding:0 14px; gap:8px; text-decoration:none; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:700;" title="Main Dashboard">
+            <i class="fa-solid fa-house"></i><span id="t_mainDashboard">Main Dashboard</span>
+        </a>
         <select class="pill-select" id="langSelect" onchange="setLanguage(this.value)">
             <option value="en">EN — English</option>
             <option value="tr">TR — Türkçe</option>
@@ -496,7 +499,7 @@ function toggleTheme(){
 const I18N = {
 en: {
     loginSub:'Manpower Planning Portal', signIn:'Sign In', invalid:'Invalid username or password', authOnly:'Authorized Access Only',
-    headerSub:'Manpower Planning', allDepts:'All Departments', searchPlaceholder:'Search job title...',
+    headerSub:'Manpower Planning', mainDashboard:'Main Dashboard', allDepts:'All Departments', searchPlaceholder:'Search job title...',
     stAll:'All', stShort:'Shortage', stSurplus:'Surplus', stFine:'On Target',
     chartsHeader:'Overview Charts', chart1:'Required vs Actual by Department', chart2:'Job Status Distribution', chart3:'Top Gaps by Job (Shortage → Surplus)',
     deptHeader:'Departments', noResults:'No matching roles found for the current filters.',
@@ -508,7 +511,7 @@ en: {
 },
 tr: {
     loginSub:'İşgücü Planlama Portalı', signIn:'Giriş Yap', invalid:'Kullanıcı adı veya şifre hatalı', authOnly:'Yalnızca Yetkili Erişim',
-    headerSub:'İşgücü Planlama', allDepts:'Tüm Departmanlar', searchPlaceholder:'Görev unvanı ara...',
+    headerSub:'İşgücü Planlama', mainDashboard:'Ana Panel', allDepts:'Tüm Departmanlar', searchPlaceholder:'Görev unvanı ara...',
     stAll:'Tümü', stShort:'Eksik', stSurplus:'Fazla', stFine:'Hedefte',
     chartsHeader:'Genel Bakış Grafikleri', chart1:'Departmana Göre Gerekli vs Mevcut', chart2:'İş Durumu Dağılımı', chart3:'En Büyük Farklar (Eksik → Fazla)',
     deptHeader:'Departmanlar', noResults:'Seçili filtrelerle eşleşen görev bulunamadı.',
@@ -520,7 +523,7 @@ tr: {
 },
 ar: {
     loginSub:'بوابة تخطيط القوى العاملة', signIn:'تسجيل الدخول', invalid:'اسم المستخدم أو كلمة المرور غير صحيحة', authOnly:'دخول مصرح به فقط',
-    headerSub:'تخطيط القوى العاملة', allDepts:'كل الأقسام', searchPlaceholder:'ابحث عن اسم الوظيفة...',
+    headerSub:'تخطيط القوى العاملة', mainDashboard:'الداشبورد الرئيسي', allDepts:'كل الأقسام', searchPlaceholder:'ابحث عن اسم الوظيفة...',
     stAll:'الكل', stShort:'عجز', stSurplus:'فائض', stFine:'مطابق للهدف',
     chartsHeader:'الرسوم البيانية العامة', chart1:'المطلوب مقابل الفعلي حسب القسم', chart2:'توزيع حالة الوظائف', chart3:'أكبر الفروقات لكل وظيفة (عجز ← فائض)',
     deptHeader:'الأقسام', noResults:'لا توجد وظائف مطابقة للفلاتر الحالية.',
@@ -549,6 +552,7 @@ function applyTranslations(){
     document.getElementById('t_invalid').textContent = T('invalid');
     document.getElementById('t_authOnly').textContent = T('authOnly');
     document.getElementById('t_headerSub').textContent = T('headerSub');
+    document.getElementById('t_mainDashboard').textContent = T('mainDashboard');
     document.getElementById('searchInput').placeholder = T('searchPlaceholder');
     document.getElementById('t_stAll').textContent = T('stAll');
     document.getElementById('t_stShort').textContent = T('stShort');
