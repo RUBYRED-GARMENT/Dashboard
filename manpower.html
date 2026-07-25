@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>RUBYRED Manpower Planning</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Roboto+Mono:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #07080d; --surface: #0e1018; --surface2: #151720;
+  --border: rgba(255,255,255,0.06); --text: #e8eaf2; --muted: #8285a0;
+  --accent: #6c63ff; --radius: 16px; --grid: rgba(255,255,255,0.03);
+  --shortage: #f3524a; --surplus: #ffb020; --fine: #0fd493;
+}
+body.light-mode {
+  --bg: #f4f7fa; --surface: #ffffff; --surface2: #fcfcfd;
+  --border: rgba(0,0,0,0.08); --text: #1a1d23; --muted: #64748b;
+  --accent: #4f46e5; --grid: rgba(0,0,0,0.05);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.3s, color 0.3s, border-color 0.3s; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+body.login-locked { overflow: hidden; }
+html[dir="rtl"] body { font-family: 'DM Sans', 'Inter', sans-serif; }
+
+/* ══════════ LOGIN OVERLAY ══════════ */
+#loginOverlay { position: fixed; inset: 0; z-index: 9999; background: #07080d; display: flex; align-items: center; justify-content: center; transition: opacity .65s ease, visibility .65s ease; }
+#loginOverlay.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
+.login-bg-grid { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.login-bg-grid::before { content:''; position:absolute; inset:-50%; background-image: linear-gradient(rgba(108,99,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(108,99,255,0.07) 1px, transparent 1px); background-size: 52px 52px; animation: gridShift 24s linear infinite; }
+.login-bg-glow { position:absolute; width:700px; height:700px; border-radius:50%; background: radial-gradient(circle, rgba(108,99,255,0.11) 0%, transparent 68%); top:50%; left:50%; transform:translate(-50%,-50%); animation: glowPulse 4.5s ease-in-out infinite; }
+.login-bg-glow2 { position:absolute; width:400px; height:400px; border-radius:50%; background: radial-gradient(circle, rgba(243,82,74,0.07) 0%, transparent 70%); bottom:10%; right:15%; animation: glowPulse 6s ease-in-out infinite reverse; }
+@keyframes gridShift { to { transform: translate(52px,52px); } }
+@keyframes glowPulse { 0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1);} 50%{opacity:1;transform:translate(-50%,-50%) scale(1.07);} }
+.login-box { position:relative; z-index:1; background: rgba(14,16,24,0.94); border:1px solid rgba(108,99,255,0.22); border-radius:26px; padding:46px 50px 42px; width:100%; max-width:430px; margin:0 20px; box-shadow:0 0 0 1px rgba(255,255,255,0.035),0 36px 90px -14px rgba(0,0,0,0.85),0 0 70px rgba(108,99,255,0.07); backdrop-filter: blur(24px); animation: slideUp .55s cubic-bezier(.34,1.5,.64,1) both; }
+@keyframes slideUp { from{opacity:0;transform:translateY(30px) scale(.96);} to{opacity:1;transform:translateY(0) scale(1);} }
+.login-logo-wrap { display:flex; flex-direction:column; align-items:center; gap:6px; margin-bottom:38px; }
+.login-brand { font-family:'Inter',sans-serif; font-size:24px; font-weight:800; letter-spacing:4px; background: linear-gradient(90deg,#8b85ff 0%,#f3524a 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.login-sub { font-size:10.5px; color: rgba(130,133,160,0.65); font-family:'Inter',sans-serif; letter-spacing:2px; text-transform:uppercase; font-weight:600; margin-top:2px; }
+.login-divider { height:1px; background: linear-gradient(90deg, transparent, rgba(108,99,255,0.2), transparent); margin-bottom:26px; }
+.login-field { position:relative; margin-bottom:14px; }
+.login-field-icon { position:absolute; left:16px; top:50%; transform:translateY(-50%); color: rgba(130,133,160,0.55); font-size:13.5px; pointer-events:none; z-index:1; }
+.login-input { width:100%; padding:15px 16px 15px 46px; background: rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.07); border-radius:13px; color:#e8eaf2; font-size:14px; font-family:'DM Sans',sans-serif; font-weight:500; outline:none; letter-spacing:.5px; }
+.login-input::placeholder { color: rgba(130,133,160,0.4); }
+.login-input:focus { border-color: rgba(108,99,255,0.5); background: rgba(108,99,255,0.04); box-shadow: 0 0 0 3px rgba(108,99,255,0.1); }
+.login-field:focus-within .login-field-icon { color:#6c63ff; }
+#loginPassword { letter-spacing:3px; }
+#loginPassword::placeholder { letter-spacing:.5px; }
+.login-btn { width:100%; padding:16px; background: linear-gradient(135deg,#6c63ff 0%,#f3524a 100%); color:#fff; border:none; border-radius:13px; font-size:13px; font-weight:800; font-family:'Inter',sans-serif; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; margin-top:10px; position:relative; overflow:hidden; box-shadow:0 6px 26px rgba(108,99,255,0.38); }
+.login-btn:hover { transform: translateY(-2px); box-shadow:0 12px 36px rgba(108,99,255,0.48); }
+.login-btn.loading { opacity:.65; pointer-events:none; }
+.login-btn .btn-spin { display:none; }
+.login-btn.loading .btn-text { opacity:0; }
+.login-btn.loading .btn-spin { display:inline-block; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.login-error { display:none; margin-top:14px; background: rgba(243,82,74,0.09); border:1px solid rgba(243,82,74,0.28); border-radius:11px; padding:11px 16px; font-size:12px; color:#f3524a; font-family:'Inter',sans-serif; font-weight:600; text-align:center; }
+.login-error.show { display:flex; align-items:center; justify-content:center; gap:8px; animation: shake .38s cubic-bezier(.36,.07,.19,.97); }
+@keyframes shake { 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(4px);} 30%,50%,70%{transform:translateX(-6px);} 40%,60%{transform:translateX(6px);} }
+.login-footer { margin-top:28px; text-align:center; font-size:10px; color: rgba(130,133,160,0.32); font-family:'Inter',sans-serif; letter-spacing:1.2px; text-transform:uppercase; }
+.login-footer span { display:inline-block; width:20px; height:1px; background: rgba(130,133,160,0.2); vertical-align:middle; margin:0 8px; }
+
+/* ══════════ HEADER ══════════ */
+.header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; position:sticky; top:0; z-index:100; background: var(--bg); backdrop-filter: blur(12px); margin-bottom:20px; margin-top:-20px; padding:20px 0 14px; }
+.header-left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.page-title { font-family:'Inter',sans-serif; font-size:20px; font-weight:800; color: var(--accent); letter-spacing:-.5px; }
+.page-title small { display:block; font-size:10px; font-weight:700; color: var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:2px; }
+.icon-btn { background: var(--surface2); color: var(--text); border:1px solid var(--border); width:38px; height:38px; border-radius:10px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
+.pill-select { background: var(--surface2); color: var(--text); border:1px solid var(--border); padding:9px 14px; border-radius:10px; font-weight:600; cursor:pointer; outline:none; font-size:12.5px; font-family:'Inter',sans-serif; }
+.header-right { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+/* ══════════ FILTER BAR ══════════ */
+.filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:14px 16px; margin-bottom:22px; }
+.filter-bar input[type="text"] { flex:1; min-width:180px; background: var(--surface2); border:1px solid var(--border); color: var(--text); padding:10px 14px; border-radius:10px; outline:none; font-family:'DM Sans',sans-serif; font-size:13px; }
+.filter-bar input[type="text"]:focus { border-color: var(--accent); }
+.status-toggle-group { display:flex; gap:6px; flex-wrap:wrap; }
+.status-toggle { border:1px solid var(--border); background: var(--surface2); color: var(--muted); padding:8px 14px; border-radius:20px; font-size:11.5px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; letter-spacing:.3px; display:flex; align-items:center; gap:6px; }
+.status-toggle .dot { width:7px; height:7px; border-radius:50%; }
+.status-toggle.active[data-s="shortage"] { background: rgba(243,82,74,0.14); border-color: var(--shortage); color: var(--shortage); }
+.status-toggle.active[data-s="surplus"] { background: rgba(255,176,32,0.14); border-color: var(--surplus); color: var(--surplus); }
+.status-toggle.active[data-s="fine"] { background: rgba(15,212,147,0.14); border-color: var(--fine); color: var(--fine); }
+.status-toggle.active[data-s="all"] { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); color: var(--accent); }
+
+/* ══════════ KPI GRID ══════════ */
+.kpi-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap:12px; margin-bottom: 24px; }
+.kpi-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:16px 18px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); position:relative; overflow:hidden; }
+.kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: var(--c); }
+html[dir="rtl"] .kpi-card::before { left:0; right:0; }
+.kpi-label { font-size:10px; font-weight:700; color: var(--muted); text-transform:uppercase; margin-bottom:8px; font-family:'Inter',sans-serif; letter-spacing:.5px; }
+.kpi-val { font-family:'Roboto Mono',monospace; font-size:25px; font-weight:700; color: var(--c); }
+.kpi-sub { font-size:10.5px; color: var(--muted); margin-top:4px; font-family:'Inter',sans-serif; }
+
+/* ══════════ CHARTS ══════════ */
+.sec-title { font-family:'Inter',sans-serif; font-size:11px; letter-spacing:1.5px; color: var(--muted); text-transform:uppercase; margin:26px 0 12px; border-bottom:1px solid var(--border); padding-bottom:5px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.charts-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(340px,1fr)); gap:20px; }
+.chart-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:20px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); }
+.chart-card-title { font-size:11px; font-weight:700; color: var(--muted); text-transform:uppercase; letter-spacing:1.2px; font-family:'Inter',sans-serif; margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+.chart-container { position:relative; height:300px; }
+
+/* ══════════ DEPARTMENT SECTIONS ══════════ */
+.dept-block { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); margin-bottom:16px; overflow:hidden; border-left:4px solid var(--dc); }
+html[dir="rtl"] .dept-block { border-left:1px solid var(--border); border-right:4px solid var(--dc); }
+.dept-head { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:16px 20px; cursor:pointer; flex-wrap:wrap; }
+.dept-head-left { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.dept-name { font-family:'Inter',sans-serif; font-size:14px; font-weight:800; letter-spacing:.5px; color: var(--text); text-transform:uppercase; }
+.dept-badge { font-size:10px; font-weight:800; padding:3px 9px; border-radius:20px; font-family:'Inter',sans-serif; letter-spacing:.4px; }
+.dept-stats { display:flex; gap:14px; font-family:'Roboto Mono',monospace; font-size:12px; color: var(--muted); flex-wrap:wrap; }
+.dept-stats b { color: var(--text); }
+.dept-toggle-icon { color: var(--muted); transition: transform .3s; }
+.dept-block.collapsed .dept-toggle-icon { transform: rotate(-90deg); }
+.dept-body { padding: 4px 20px 20px; display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:12px; max-height:2000px; transition: max-height .35s ease, padding .35s ease; overflow:hidden; }
+.dept-block.collapsed .dept-body { max-height:0; padding-top:0; padding-bottom:0; }
+
+.job-card { background: var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px 15px; border-top:3px solid var(--jc); }
+.job-title { font-size:12.5px; font-weight:700; font-family:'Inter',sans-serif; color: var(--text); margin-bottom:10px; min-height:32px; }
+.job-nums { display:flex; justify-content:space-between; gap:8px; margin-bottom:10px; }
+.job-num-box { flex:1; text-align:center; background: var(--surface); border:1px solid var(--border); border-radius:8px; padding:6px 4px; }
+.job-num-label { font-size:8.5px; color: var(--muted); text-transform:uppercase; font-family:'Inter',sans-serif; font-weight:700; letter-spacing:.3px; }
+.job-num-val { font-family:'Roboto Mono',monospace; font-size:15px; font-weight:700; color: var(--text); margin-top:2px; }
+.job-status-row { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; font-family:'Inter',sans-serif; color: var(--jc); }
+.job-note { font-size:10.5px; color: var(--muted); margin-top:6px; font-style:italic; font-family:'DM Sans',sans-serif; }
+.no-results { text-align:center; padding:50px 20px; color: var(--muted); font-family:'Inter',sans-serif; }
+.no-results i { font-size:34px; opacity:.2; display:block; margin-bottom:10px; }
+
+@media (max-width:768px){ .chart-container{ height:260px; } }
+</style>
+</head>
+<body class="login-locked">
+
+<!-- ══════════ LOGIN OVERLAY ══════════ -->
+<div id="loginOverlay">
+    <div class="login-bg-grid"></div>
+    <div class="login-bg-glow"></div>
+    <div class="login-bg-glow2"></div>
+    <div class="login-box">
+        <div class="login-logo-wrap">
+            <div class="login-brand">RUBYRED</div>
+            <div class="login-sub" id="t_loginSub">Manpower Planning Portal</div>
+        </div>
+        <div class="login-divider"></div>
+        <div class="login-field">
+            <i class="fa-solid fa-user login-field-icon"></i>
+            <input class="login-input" type="text" id="loginUsername" placeholder="Username" autocomplete="off" spellcheck="false" onkeydown="handleLoginKey(event)"/>
+        </div>
+        <div class="login-field">
+            <i class="fa-solid fa-lock login-field-icon"></i>
+            <input class="login-input" type="password" id="loginPassword" placeholder="Password" autocomplete="off" onkeydown="handleLoginKey(event)"/>
+        </div>
+        <button class="login-btn" id="loginBtn" onclick="doLogin()">
+            <span class="btn-text" id="t_signIn"><i class="fa-solid fa-right-to-bracket" style="margin-right:8px;"></i>Sign In</span>
+            <span class="btn-spin"><i class="fa-solid fa-circle-notch"></i></span>
+        </button>
+        <div class="login-error" id="loginError">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span id="t_invalid">Invalid username or password</span>
+        </div>
+        <div class="login-footer"><span></span><span id="t_authOnly">Authorized Access Only</span><span></span></div>
+    </div>
+</div>
+
+<!-- ══════════ HEADER ══════════ -->
+<header class="header">
+    <div class="header-left">
+        <div class="page-title">RUBYRED <small id="t_headerSub">Manpower Planning</small></div>
+    </div>
+    <div class="header-right">
+        <select class="pill-select" id="langSelect" onchange="setLanguage(this.value)">
+            <option value="en">EN — English</option>
+            <option value="tr">TR — Türkçe</option>
+            <option value="ar">AR — العربية</option>
+        </select>
+        <button class="icon-btn" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-sun"></i></button>
+        <button class="icon-btn" onclick="fetchData()" title="Refresh"><i class="fa-solid fa-rotate"></i></button>
+    </div>
+</header>
+
+<!-- ══════════ FILTER BAR ══════════ -->
+<div class="filter-bar">
+    <input type="text" id="searchInput" placeholder="Search job title..." onkeyup="renderDashboard()"/>
+    <select class="pill-select" id="deptFilter" onchange="renderDashboard()">
+        <option value="all" id="t_allDepts">All Departments</option>
+    </select>
+    <div class="status-toggle-group" id="statusToggleGroup">
+        <button class="status-toggle active" data-s="all" onclick="setStatusFilter('all')"><span id="t_stAll">All</span></button>
+        <button class="status-toggle" data-s="shortage" onclick="setStatusFilter('shortage')"><span class="dot" style="background:var(--shortage)"></span><span id="t_stShort">Shortage</span></button>
+        <button class="status-toggle" data-s="surplus" onclick="setStatusFilter('surplus')"><span class="dot" style="background:var(--surplus)"></span><span id="t_stSurplus">Surplus</span></button>
+        <button class="status-toggle" data-s="fine" onclick="setStatusFilter('fine')"><span class="dot" style="background:var(--fine)"></span><span id="t_stFine">On Target</span></button>
+    </div>
+</div>
+
+<!-- ══════════ KPI SUMMARY ══════════ -->
+<div class="kpi-grid" id="kpiContainer"></div>
+
+<!-- ══════════ CHARTS ══════════ -->
+<div class="sec-title"><i class="fa-solid fa-chart-column"></i><span id="t_chartsHeader">Overview Charts</span></div>
+<div class="charts-grid">
+    <div class="chart-card">
+        <div class="chart-card-title"><i class="fa-solid fa-building" style="color:#6c63ff"></i><span id="t_chart1">Required vs Actual by Department</span></div>
+        <div class="chart-container"><canvas id="deptBarChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+        <div class="chart-card-title"><i class="fa-solid fa-chart-pie" style="color:#f3524a"></i><span id="t_chart2">Job Status Distribution</span></div>
+        <div class="chart-container"><canvas id="statusDonutChart"></canvas></div>
+    </div>
+    <div class="chart-card" style="grid-column:1/-1">
+        <div class="chart-card-title"><i class="fa-solid fa-arrow-down-wide-short" style="color:#ffb020"></i><span id="t_chart3">Top Gaps by Job (Shortage → Surplus)</span></div>
+        <div class="chart-container"><canvas id="gapBarChart"></canvas></div>
+    </div>
+</div>
+
+<!-- ══════════ DEPARTMENT SECTIONS ══════════ -->
+<div class="sec-title"><i class="fa-solid fa-layer-group"></i><span id="t_deptHeader">Departments</span></div>
+<div id="deptContainer"></div>
+
+<script>
+/* ══════════ LOGIN ══════════ */
+const VALID_USER = 'RUBYRED';
+const VALID_PASS = 'HR000000';
+
+function handleLoginKey(e){ if(e.key==='Enter') doLogin(); }
+function doLogin(){
+    const user = document.getElementById('loginUsername').value.trim();
+    const pass = document.getElementById('loginPassword').value.trim();
+    const btn = document.getElementById('loginBtn');
+    const err = document.getElementById('loginError');
+    err.classList.remove('show');
+    btn.classList.add('loading');
+    setTimeout(()=>{
+        btn.classList.remove('loading');
+        if(user===VALID_USER && pass===VALID_PASS){
+            const overlay = document.getElementById('loginOverlay');
+            overlay.classList.add('fade-out');
+            document.body.classList.remove('login-locked');
+            setTimeout(()=>{ overlay.style.display='none'; },700);
+        } else {
+            err.classList.add('show');
+            document.getElementById('loginPassword').value='';
+            document.getElementById('loginPassword').focus();
+        }
+    },600);
+}
+window.addEventListener('DOMContentLoaded', ()=>{ document.getElementById('loginUsername').focus(); applyTranslations(); });
+
+/* ══════════ GOOGLE SHEET CONFIG ══════════
+   Sheet columns expected (row 1 = header, data from row 2):
+   A = Department / Section   (e.g. Production, Cutting, Warehouse...)
+   B = Job Title               (e.g. Machine Singer, Ironing, Packing...)
+   C = Required Headcount      (target number)
+   D = Actual Headcount        (current number)
+   E = Note (optional)         (free text, not required)
+
+   Status (Surplus / Shortage / On Target) is CALCULATED automatically
+   from Actual − Required, so you never have to type it by hand and it
+   can never go out of sync with the numbers.
+   Rename the "manpower" tab below to match your sheet's tab name.
+═══════════════════════════════════════════════ */
+const SHEET_ID = '1j7IFj_tylNeqwui57JU7coeB6XXj0Lt7d4yBHaqmutE';
+const API_KEY  = 'AIzaSyB_dCi6NlG_jUCUY955eynfN0gF7KobQ4A';
+const RANGE    = 'manpower!A1:E300';
+
+const deptColors = ['#6c63ff','#0fd493','#f3524a','#4594f5','#ff8c40','#f065b8','#a78bfa','#00d2ff','#fbbf24','#f87171'];
+
+let rawJobs = [];      // {dept, job, required, actual, note, diff, status}
+let statusFilter = 'all';
+let charts = {};
+
+/* ══════════ FETCH & PARSE ══════════ */
+async function fetchData(){
+    try{
+        const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`);
+        const data = await res.json();
+        if(data.values) parseRows(data.values);
+    }catch(e){ console.error('Error loading sheet data', e); }
+}
+
+function parseRows(rows){
+    const body = rows.slice(1); // skip header row
+    rawJobs = [];
+    let lastDept = '';
+    body.forEach(r=>{
+        const deptRaw = (r[0]||'').trim();
+        const job = (r[1]||'').trim();
+        if(!job) return; // skip empty rows
+        if(deptRaw) lastDept = deptRaw;
+        const required = parseFloat(r[2]) || 0;
+        const actual   = parseFloat(r[3]) || 0;
+        const note     = (r[4]||'').trim();
+        const diff     = actual - required;
+        let status = 'fine';
+        if(diff < 0) status = 'shortage';
+        else if(diff > 0) status = 'surplus';
+        rawJobs.push({ dept: lastDept || 'Unassigned', job, required, actual, note, diff, status });
+    });
+    populateDeptFilter();
+    renderDashboard();
+}
+
+function populateDeptFilter(){
+    const sel = document.getElementById('deptFilter');
+    const current = sel.value;
+    const depts = [...new Set(rawJobs.map(j=>j.dept))];
+    sel.innerHTML = `<option value="all" id="t_allDepts">${T('allDepts')}</option>` +
+        depts.map(d=>`<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+    if(depts.includes(current)) sel.value = current;
+}
+
+function setStatusFilter(s){
+    statusFilter = s;
+    document.querySelectorAll('.status-toggle').forEach(el=>{
+        el.classList.toggle('active', el.getAttribute('data-s')===s);
+    });
+    renderDashboard();
+}
+
+function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ══════════ RENDER ══════════ */
+function renderDashboard(){
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    const deptSel = document.getElementById('deptFilter').value;
+
+    const filtered = rawJobs.filter(j=>{
+        if(deptSel!=='all' && j.dept!==deptSel) return false;
+        if(statusFilter!=='all' && j.status!==statusFilter) return false;
+        if(q && !j.job.toLowerCase().includes(q)) return false;
+        return true;
+    });
+
+    renderKPIs(filtered);
+    renderDeptSections(filtered);
+    renderCharts(filtered);
+}
+
+function renderKPIs(list){
+    const totalReq = list.reduce((a,j)=>a+j.required,0);
+    const totalAct = list.reduce((a,j)=>a+j.actual,0);
+    const shortageCount = list.filter(j=>j.status==='shortage').length;
+    const surplusCount  = list.filter(j=>j.status==='surplus').length;
+    const fineCount     = list.filter(j=>j.status==='fine').length;
+    const fulfillment   = totalReq>0 ? ((totalAct/totalReq)*100).toFixed(1) : '0.0';
+    const gap = totalAct - totalReq;
+
+    const cards = [
+        { c:'#6c63ff', label:T('kpiRequired'), val:totalReq.toLocaleString(), sub:T('kpiPositions') },
+        { c:'#4594f5', label:T('kpiActual'), val:totalAct.toLocaleString(), sub:T('kpiHeadcount') },
+        { c: gap<0 ? '#f3524a' : gap>0 ? '#ffb020' : '#0fd493', label:T('kpiGap'), val:(gap>0?'+':'')+gap.toLocaleString(), sub: gap<0 ? T('kpiNeedHiring') : gap>0 ? T('kpiNeedReduce') : T('kpiBalanced') },
+        { c:'#0fd493', label:T('kpiFulfillment'), val: fulfillment+'%', sub:T('kpiOfTarget') },
+        { c:'#f3524a', label:T('kpiShortageJobs'), val: shortageCount, sub:T('kpiRoles') },
+        { c:'#ffb020', label:T('kpiSurplusJobs'), val: surplusCount, sub:T('kpiRoles') },
+        { c:'#0fd493', label:T('kpiFineJobs'), val: fineCount, sub:T('kpiRoles') },
+    ];
+    document.getElementById('kpiContainer').innerHTML = cards.map(c=>`
+        <div class="kpi-card" style="--c:${c.c}">
+            <div class="kpi-label">${c.label}</div>
+            <div class="kpi-val">${c.val}</div>
+            <div class="kpi-sub">${c.sub}</div>
+        </div>`).join('');
+}
+
+function renderDeptSections(list){
+    const container = document.getElementById('deptContainer');
+    if(list.length===0){
+        container.innerHTML = `<div class="no-results"><i class="fa-solid fa-inbox"></i>${T('noResults')}</div>`;
+        return;
+    }
+    const deptMap = {};
+    list.forEach(j=>{ (deptMap[j.dept] = deptMap[j.dept]||[]).push(j); });
+
+    let html = '';
+    Object.keys(deptMap).forEach((dept,idx)=>{
+        const jobs = deptMap[dept];
+        const dc = deptColors[idx % deptColors.length];
+        const totalReq = jobs.reduce((a,j)=>a+j.required,0);
+        const totalAct = jobs.reduce((a,j)=>a+j.actual,0);
+        const gap = totalAct - totalReq;
+        const badgeColor = gap<0 ? 'var(--shortage)' : gap>0 ? 'var(--surplus)' : 'var(--fine)';
+        const badgeText  = gap<0 ? T('shortage') : gap>0 ? T('surplus') : T('onTarget');
+
+        html += `<div class="dept-block" style="--dc:${dc}" id="dept_${idx}">
+            <div class="dept-head" onclick="toggleDept(${idx})">
+                <div class="dept-head-left">
+                    <span class="dept-name">${escapeHtml(dept)}</span>
+                    <span class="dept-badge" style="background:color-mix(in srgb, ${badgeColor} 18%, transparent); color:${badgeColor}">${badgeText}</span>
+                </div>
+                <div class="dept-stats">
+                    <span>${T('required')}: <b>${totalReq}</b></span>
+                    <span>${T('actual')}: <b>${totalAct}</b></span>
+                    <span style="color:${badgeColor}">${T('gap')}: <b>${(gap>0?'+':'')+gap}</b></span>
+                    <i class="fa-solid fa-chevron-down dept-toggle-icon"></i>
+                </div>
+            </div>
+            <div class="dept-body">
+                ${jobs.map(j=>renderJobCard(j)).join('')}
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderJobCard(j){
+    let jc, statusIcon, statusText;
+    if(j.status==='shortage'){ jc='var(--shortage)'; statusIcon='fa-arrow-trend-down'; statusText=`${T('shortage')} · ${T('needMore').replace('{n}', Math.abs(j.diff))}`; }
+    else if(j.status==='surplus'){ jc='var(--surplus)'; statusIcon='fa-arrow-trend-up'; statusText=`${T('surplus')} · ${T('needReduce').replace('{n}', j.diff)}`; }
+    else { jc='var(--fine)'; statusIcon='fa-circle-check'; statusText=T('targetReached'); }
+
+    return `<div class="job-card" style="--jc:${jc}">
+        <div class="job-title">${escapeHtml(j.job)}</div>
+        <div class="job-nums">
+            <div class="job-num-box"><div class="job-num-label">${T('required')}</div><div class="job-num-val">${j.required}</div></div>
+            <div class="job-num-box"><div class="job-num-label">${T('actual')}</div><div class="job-num-val">${j.actual}</div></div>
+        </div>
+        <div class="job-status-row"><i class="fa-solid ${statusIcon}"></i>${statusText}</div>
+        ${j.note ? `<div class="job-note">${escapeHtml(j.note)}</div>` : ''}
+    </div>`;
+}
+
+function toggleDept(idx){
+    document.getElementById(`dept_${idx}`).classList.toggle('collapsed');
+}
+
+/* ══════════ CHARTS ══════════ */
+function renderCharts(list){
+    const textColor = getComputedStyle(document.body).getPropertyValue('--muted').trim();
+    const gridColor = getComputedStyle(document.body).getPropertyValue('--grid').trim();
+    const textFull  = getComputedStyle(document.body).getPropertyValue('--text').trim();
+
+    // 1) Required vs Actual by department
+    const deptMap = {};
+    list.forEach(j=>{
+        if(!deptMap[j.dept]) deptMap[j.dept] = {required:0, actual:0};
+        deptMap[j.dept].required += j.required;
+        deptMap[j.dept].actual   += j.actual;
+    });
+    const deptLabels = Object.keys(deptMap);
+    const reqData = deptLabels.map(d=>deptMap[d].required);
+    const actData = deptLabels.map(d=>deptMap[d].actual);
+
+    if(charts.deptBar) charts.deptBar.destroy();
+    charts.deptBar = new Chart(document.getElementById('deptBarChart').getContext('2d'), {
+        type:'bar', plugins:[ChartDataLabels],
+        data:{ labels: deptLabels, datasets:[
+            { label:T('required'), data:reqData, backgroundColor:'rgba(108,99,255,0.35)', borderColor:'#6c63ff', borderWidth:1.5, borderRadius:5 },
+            { label:T('actual'), data:actData, backgroundColor:'#6c63ff', borderRadius:5 }
+        ]},
+        options:{ responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ position:'bottom', labels:{ color:textColor, font:{family:'Inter', size:10} } },
+                datalabels:{ display:false } },
+            scales:{ y:{ beginAtZero:true, grid:{color:gridColor}, ticks:{color:textColor, font:{family:'Roboto Mono', size:10}} },
+                     x:{ grid:{display:false}, ticks:{color:textColor, font:{family:'Inter', weight:'600', size:9}} } } }
+    });
+
+    // 2) Status distribution donut
+    const shortageCount = list.filter(j=>j.status==='shortage').length;
+    const surplusCount  = list.filter(j=>j.status==='surplus').length;
+    const fineCount     = list.filter(j=>j.status==='fine').length;
+
+    if(charts.statusDonut) charts.statusDonut.destroy();
+    charts.statusDonut = new Chart(document.getElementById('statusDonutChart').getContext('2d'), {
+        type:'doughnut', plugins:[ChartDataLabels],
+        data:{ labels:[T('shortage'), T('surplus'), T('onTarget')], datasets:[{ data:[shortageCount,surplusCount,fineCount], backgroundColor:['#f3524a','#ffb020','#0fd493'], borderWidth:2, borderColor:'var(--surface)' }] },
+        options:{ responsive:true, maintainAspectRatio:false, cutout:'58%',
+            plugins:{ legend:{ position:'bottom', labels:{ color:textColor, font:{family:'Inter', size:10}, usePointStyle:true } },
+                datalabels:{ color:'#fff', font:{family:'Roboto Mono', weight:'700', size:11}, formatter:(v,ctx)=>{ const total=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return total>0 ? ((v/total)*100).toFixed(0)+'%' : ''; }, display:(ctx)=>ctx.dataset.data[ctx.dataIndex]>0 } } }
+    });
+
+    // 3) Top gaps by job (sorted, most negative first)
+    const sorted = [...list].sort((a,b)=>a.diff-b.diff).filter(j=>j.diff!==0).slice(0,15);
+    const gapLabels = sorted.map(j=>`${j.job} (${j.dept})`);
+    const gapData = sorted.map(j=>j.diff);
+    const gapColors = sorted.map(j=> j.diff<0 ? '#f3524a' : '#ffb020');
+
+    if(charts.gapBar) charts.gapBar.destroy();
+    charts.gapBar = new Chart(document.getElementById('gapBarChart').getContext('2d'), {
+        type:'bar', plugins:[ChartDataLabels],
+        data:{ labels: gapLabels, datasets:[{ data: gapData, backgroundColor: gapColors, borderRadius:5, barThickness:16 }] },
+        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{display:false}, datalabels:{ anchor:'end', align:(ctx)=> ctx.dataset.data[ctx.dataIndex]<0 ? 'start':'end', color:textFull, font:{family:'Roboto Mono', weight:'700', size:10}, formatter:(v)=>(v>0?'+':'')+v } },
+            scales:{ x:{ grid:{color:gridColor}, ticks:{color:textColor, font:{family:'Roboto Mono', size:10}} },
+                     y:{ grid:{display:false}, ticks:{color:textColor, font:{family:'Inter', size:9}} } } }
+    });
+}
+
+/* ══════════ THEME ══════════ */
+function toggleTheme(){
+    const body = document.body, icon = document.getElementById('themeIcon');
+    body.classList.toggle('light-mode');
+    icon.classList.toggle('fa-sun', !body.classList.contains('light-mode'));
+    icon.classList.toggle('fa-moon', body.classList.contains('light-mode'));
+    renderDashboard();
+}
+
+/* ══════════ I18N ══════════ */
+const I18N = {
+en: {
+    loginSub:'Manpower Planning Portal', signIn:'Sign In', invalid:'Invalid username or password', authOnly:'Authorized Access Only',
+    headerSub:'Manpower Planning', allDepts:'All Departments', searchPlaceholder:'Search job title...',
+    stAll:'All', stShort:'Shortage', stSurplus:'Surplus', stFine:'On Target',
+    chartsHeader:'Overview Charts', chart1:'Required vs Actual by Department', chart2:'Job Status Distribution', chart3:'Top Gaps by Job (Shortage → Surplus)',
+    deptHeader:'Departments', noResults:'No matching roles found for the current filters.',
+    kpiRequired:'Total Required', kpiActual:'Total Actual', kpiGap:'Overall Gap', kpiFulfillment:'Fulfillment', kpiShortageJobs:'Shortage Roles', kpiSurplusJobs:'Surplus Roles', kpiFineJobs:'On-Target Roles',
+    kpiPositions:'positions', kpiHeadcount:'headcount', kpiOfTarget:'of target', kpiRoles:'roles',
+    kpiNeedHiring:'need to hire', kpiNeedReduce:'need to reduce', kpiBalanced:'balanced',
+    required:'Required', actual:'Actual', gap:'Gap', shortage:'Shortage', surplus:'Surplus', onTarget:'On Target', targetReached:'Target reached',
+    needMore:'{n} more needed', needReduce:'reduce by {n}'
+},
+tr: {
+    loginSub:'İşgücü Planlama Portalı', signIn:'Giriş Yap', invalid:'Kullanıcı adı veya şifre hatalı', authOnly:'Yalnızca Yetkili Erişim',
+    headerSub:'İşgücü Planlama', allDepts:'Tüm Departmanlar', searchPlaceholder:'Görev unvanı ara...',
+    stAll:'Tümü', stShort:'Eksik', stSurplus:'Fazla', stFine:'Hedefte',
+    chartsHeader:'Genel Bakış Grafikleri', chart1:'Departmana Göre Gerekli vs Mevcut', chart2:'İş Durumu Dağılımı', chart3:'En Büyük Farklar (Eksik → Fazla)',
+    deptHeader:'Departmanlar', noResults:'Seçili filtrelerle eşleşen görev bulunamadı.',
+    kpiRequired:'Toplam Gerekli', kpiActual:'Toplam Mevcut', kpiGap:'Genel Fark', kpiFulfillment:'Doluluk Oranı', kpiShortageJobs:'Eksik Roller', kpiSurplusJobs:'Fazla Roller', kpiFineJobs:'Hedefteki Roller',
+    kpiPositions:'pozisyon', kpiHeadcount:'personel', kpiOfTarget:'hedefin', kpiRoles:'rol',
+    kpiNeedHiring:'işe alım gerekiyor', kpiNeedReduce:'azaltma gerekiyor', kpiBalanced:'dengeli',
+    required:'Gerekli', actual:'Mevcut', gap:'Fark', shortage:'Eksik', surplus:'Fazla', onTarget:'Hedefte', targetReached:'Hedefe ulaşıldı',
+    needMore:'{n} kişi daha gerekli', needReduce:'{n} azaltılmalı'
+},
+ar: {
+    loginSub:'بوابة تخطيط القوى العاملة', signIn:'تسجيل الدخول', invalid:'اسم المستخدم أو كلمة المرور غير صحيحة', authOnly:'دخول مصرح به فقط',
+    headerSub:'تخطيط القوى العاملة', allDepts:'كل الأقسام', searchPlaceholder:'ابحث عن اسم الوظيفة...',
+    stAll:'الكل', stShort:'عجز', stSurplus:'فائض', stFine:'مطابق للهدف',
+    chartsHeader:'الرسوم البيانية العامة', chart1:'المطلوب مقابل الفعلي حسب القسم', chart2:'توزيع حالة الوظائف', chart3:'أكبر الفروقات لكل وظيفة (عجز ← فائض)',
+    deptHeader:'الأقسام', noResults:'لا توجد وظائف مطابقة للفلاتر الحالية.',
+    kpiRequired:'إجمالي المطلوب', kpiActual:'إجمالي الفعلي', kpiGap:'الفارق الكلي', kpiFulfillment:'نسبة التغطية', kpiShortageJobs:'وظائف بها عجز', kpiSurplusJobs:'وظائف بها فائض', kpiFineJobs:'وظائف مطابقة للهدف',
+    kpiPositions:'وظيفة', kpiHeadcount:'موظف', kpiOfTarget:'من الهدف', kpiRoles:'وظيفة',
+    kpiNeedHiring:'يحتاج توظيف', kpiNeedReduce:'يحتاج تخفيض', kpiBalanced:'متوازن',
+    required:'المطلوب', actual:'الفعلي', gap:'الفارق', shortage:'عجز', surplus:'فائض', onTarget:'مطابق للهدف', targetReached:'تم الوصول للهدف',
+    needMore:'يلزم توظيف {n} إضافي', needReduce:'يلزم تخفيض {n}'
+}
+};
+let currentLang = 'en';
+function T(key){ return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key; }
+
+function setLanguage(lang){
+    currentLang = lang;
+    document.documentElement.setAttribute('dir', lang==='ar' ? 'rtl' : 'ltr');
+    document.getElementById('langSelect').value = lang;
+    applyTranslations();
+    populateDeptFilter();
+    renderDashboard();
+}
+
+function applyTranslations(){
+    document.getElementById('t_loginSub').textContent = T('loginSub');
+    document.getElementById('t_signIn').innerHTML = `<i class="fa-solid fa-right-to-bracket" style="margin-right:8px;"></i>${T('signIn')}`;
+    document.getElementById('t_invalid').textContent = T('invalid');
+    document.getElementById('t_authOnly').textContent = T('authOnly');
+    document.getElementById('t_headerSub').textContent = T('headerSub');
+    document.getElementById('searchInput').placeholder = T('searchPlaceholder');
+    document.getElementById('t_stAll').textContent = T('stAll');
+    document.getElementById('t_stShort').textContent = T('stShort');
+    document.getElementById('t_stSurplus').textContent = T('stSurplus');
+    document.getElementById('t_stFine').textContent = T('stFine');
+    document.getElementById('t_chartsHeader').textContent = T('chartsHeader');
+    document.getElementById('t_chart1').textContent = T('chart1');
+    document.getElementById('t_chart2').textContent = T('chart2');
+    document.getElementById('t_chart3').textContent = T('chart3');
+    document.getElementById('t_deptHeader').textContent = T('deptHeader');
+}
+
+fetchData();
+</script>
+</body>
+</html>
