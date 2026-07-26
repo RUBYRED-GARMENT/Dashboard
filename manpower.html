@@ -23,6 +23,7 @@ body.light-mode {
 * { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.3s, color 0.3s, border-color 0.3s; }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
 body.login-locked { overflow: hidden; }
+body.modal-open { overflow: hidden; }
 html[dir="rtl"] body { font-family: 'DM Sans', 'Inter', sans-serif; }
 
 /* ══════════ LOGIN OVERLAY ══════════ */
@@ -67,6 +68,7 @@ html[dir="rtl"] body { font-family: 'DM Sans', 'Inter', sans-serif; }
 .page-title { font-family:'Inter',sans-serif; font-size:20px; font-weight:800; color: var(--accent); letter-spacing:-.5px; }
 .page-title small { display:block; font-size:10px; font-weight:700; color: var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:2px; }
 .icon-btn { background: var(--surface2); color: var(--text); border:1px solid var(--border); width:38px; height:38px; border-radius:10px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
+.nav-btn { width:auto; padding:0 14px; gap:8px; text-decoration:none; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:700; }
 .pill-select { background: var(--surface2); color: var(--text); border:1px solid var(--border); padding:9px 14px; border-radius:10px; font-weight:600; cursor:pointer; outline:none; font-size:12.5px; font-family:'Inter',sans-serif; }
 .header-right { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 
@@ -95,7 +97,8 @@ html[dir="rtl"] .kpi-card::before { left:0; right:0; }
 .sec-title { font-family:'Inter',sans-serif; font-size:11px; letter-spacing:1.5px; color: var(--muted); text-transform:uppercase; margin:26px 0 12px; border-bottom:1px solid var(--border); padding-bottom:5px; font-weight:700; display:flex; align-items:center; gap:8px; }
 .charts-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(340px,1fr)); gap:20px; }
 .chart-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:20px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); }
-.chart-card-title { font-size:11px; font-weight:700; color: var(--muted); text-transform:uppercase; letter-spacing:1.2px; font-family:'Inter',sans-serif; margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+.chart-card-title { font-size:11px; font-weight:700; color: var(--muted); text-transform:uppercase; letter-spacing:1.2px; font-family:'Inter',sans-serif; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+.chart-card-hint { font-size:10.5px; color: var(--muted); opacity:.75; margin-bottom:14px; font-family:'DM Sans',sans-serif; }
 .chart-container { position:relative; height:300px; }
 
 /* ══════════ DEPARTMENT SECTIONS ══════════ */
@@ -109,21 +112,49 @@ html[dir="rtl"] .dept-block { border-left:1px solid var(--border); border-right:
 .dept-stats b { color: var(--text); }
 .dept-toggle-icon { color: var(--muted); transition: transform .3s; }
 .dept-block.collapsed .dept-toggle-icon { transform: rotate(-90deg); }
-.dept-body { padding: 4px 20px 20px; display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:12px; max-height:2000px; transition: max-height .35s ease, padding .35s ease; overflow:hidden; }
+.dept-body { padding: 4px 20px 20px; display:grid; grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); gap:12px; max-height:2000px; transition: max-height .35s ease, padding .35s ease; overflow:hidden; }
 .dept-block.collapsed .dept-body { max-height:0; padding-top:0; padding-bottom:0; }
 
-.job-card { background: var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px 15px; border-top:3px solid var(--jc); }
-.job-title { font-size:12.5px; font-weight:700; font-family:'Inter',sans-serif; color: var(--text); margin-bottom:10px; min-height:32px; }
+.job-card { background: var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px 15px; border-top:3px solid var(--jc); cursor:pointer; }
+.job-card:hover { border-color: var(--jc); transform: translateY(-2px); box-shadow: 0 8px 18px -6px rgba(0,0,0,0.35); }
+.job-title { font-size:12.5px; font-weight:700; font-family:'Inter',sans-serif; color: var(--text); margin-bottom:10px; min-height:32px; display:flex; align-items:flex-start; justify-content:space-between; gap:6px; }
+.job-title i.fa-chevron-right, .job-title i.fa-chevron-left { color: var(--muted); font-size:10px; margin-top:3px; flex-shrink:0; }
 .job-nums { display:flex; justify-content:space-between; gap:8px; margin-bottom:10px; }
 .job-num-box { flex:1; text-align:center; background: var(--surface); border:1px solid var(--border); border-radius:8px; padding:6px 4px; }
 .job-num-label { font-size:8.5px; color: var(--muted); text-transform:uppercase; font-family:'Inter',sans-serif; font-weight:700; letter-spacing:.3px; }
 .job-num-val { font-family:'Roboto Mono',monospace; font-size:15px; font-weight:700; color: var(--text); margin-top:2px; }
-.job-status-row { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; font-family:'Inter',sans-serif; color: var(--jc); }
+.job-progress-track { height:6px; border-radius:4px; background: var(--surface); overflow:hidden; margin-bottom:9px; border:1px solid var(--border); }
+.job-progress-fill { height:100%; border-radius:4px; background: var(--jc); }
+.job-status-row { display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:11px; font-weight:700; font-family:'Inter',sans-serif; color: var(--jc); }
+.job-status-row .status-pct { font-family:'Roboto Mono',monospace; font-size:11px; }
 .job-note { font-size:10.5px; color: var(--muted); margin-top:6px; font-style:italic; font-family:'DM Sans',sans-serif; }
 .no-results { text-align:center; padding:50px 20px; color: var(--muted); font-family:'Inter',sans-serif; }
 .no-results i { font-size:34px; opacity:.2; display:block; margin-bottom:10px; }
 
-@media (max-width:768px){ .chart-container{ height:260px; } }
+/* ══════════ JOB DETAIL MODAL ══════════ */
+#jobModalOverlay { position:fixed; inset:0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index:2000; display:none; align-items:center; justify-content:center; padding:20px; }
+#jobModalOverlay.show { display:flex; }
+.job-modal { background: var(--surface); border:1px solid var(--border); border-radius:20px; width:100%; max-width:440px; max-height:90vh; overflow-y:auto; box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6); border-top:5px solid var(--jc); animation: slideUp .35s cubic-bezier(.34,1.5,.64,1) both; }
+.job-modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:22px 22px 14px; }
+.job-modal-dept { font-size:10px; font-weight:700; color: var(--muted); text-transform:uppercase; letter-spacing:1px; font-family:'Inter',sans-serif; margin-bottom:5px; }
+.job-modal-title { font-size:17px; font-weight:800; font-family:'Inter',sans-serif; color: var(--text); line-height:1.35; }
+.job-modal-close { background: var(--surface2); border:1px solid var(--border); color: var(--muted); width:32px; height:32px; min-width:32px; border-radius:9px; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; }
+.job-modal-badge-row { padding: 0 22px 18px; }
+.job-modal-badge { display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:20px; font-size:12px; font-weight:800; font-family:'Inter',sans-serif; }
+.job-modal-nums { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; padding:0 22px 18px; }
+.job-modal-numbox { background: var(--surface2); border:1px solid var(--border); border-radius:12px; padding:12px 8px; text-align:center; }
+.job-modal-numbox .l { font-size:9px; color: var(--muted); text-transform:uppercase; font-weight:700; font-family:'Inter',sans-serif; letter-spacing:.4px; margin-bottom:5px; }
+.job-modal-numbox .v { font-family:'Roboto Mono',monospace; font-size:19px; font-weight:700; color: var(--text); }
+.job-modal-section { padding: 0 22px 20px; }
+.job-modal-progress-label { display:flex; justify-content:space-between; font-size:11px; color: var(--muted); font-family:'Inter',sans-serif; font-weight:600; margin-bottom:8px; }
+.job-modal-progress-track { height:10px; border-radius:6px; background: var(--surface2); border:1px solid var(--border); overflow:hidden; }
+.job-modal-progress-fill { height:100%; border-radius:6px; }
+.job-modal-explain { margin-top:16px; background: var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px 16px; font-size:12.5px; line-height:1.6; color: var(--text); font-family:'DM Sans',sans-serif; }
+.job-modal-explain b { color: var(--jc); }
+.job-modal-note-box { margin-top:12px; padding:12px 16px; border-radius:12px; background: rgba(108,99,255,0.07); border:1px solid rgba(108,99,255,0.18); font-size:12px; color: var(--text); font-family:'DM Sans',sans-serif; }
+.job-modal-note-box .l { font-size:9.5px; text-transform:uppercase; letter-spacing:.5px; color: var(--accent); font-weight:800; font-family:'Inter',sans-serif; margin-bottom:5px; display:block; }
+
+@media (max-width:768px){ .chart-container{ height:260px; } .job-modal-nums{ grid-template-columns: 1fr 1fr 1fr; } }
 </style>
 </head>
 <body class="login-locked">
@@ -165,8 +196,11 @@ html[dir="rtl"] .dept-block { border-left:1px solid var(--border); border-right:
         <div class="page-title">RUBYRED <small id="t_headerSub">Manpower Planning</small></div>
     </div>
     <div class="header-right">
-        <a href="index.html" class="icon-btn" style="width:auto; padding:0 14px; gap:8px; text-decoration:none; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:700;" title="Main Dashboard">
+        <a href="index.html" class="icon-btn nav-btn" title="Main Dashboard">
             <i class="fa-solid fa-house"></i><span id="t_mainDashboard">Main Dashboard</span>
+        </a>
+        <a href="turnover.html" class="icon-btn nav-btn" title="Turnover Dashboard">
+            <i class="fa-solid fa-people-arrows"></i><span id="t_turnoverDashboard">Turnover Dashboard</span>
         </a>
         <select class="pill-select" id="langSelect" onchange="setLanguage(this.value)">
             <option value="en">EN — English</option>
@@ -200,21 +234,54 @@ html[dir="rtl"] .dept-block { border-left:1px solid var(--border); border-right:
 <div class="charts-grid">
     <div class="chart-card">
         <div class="chart-card-title"><i class="fa-solid fa-building" style="color:#6c63ff"></i><span id="t_chart1">Required vs Actual by Department</span></div>
+        <div class="chart-card-hint" id="t_chart1Hint">Compare planned headcount to who is actually there, department by department.</div>
         <div class="chart-container"><canvas id="deptBarChart"></canvas></div>
     </div>
     <div class="chart-card">
         <div class="chart-card-title"><i class="fa-solid fa-chart-pie" style="color:#f3524a"></i><span id="t_chart2">Job Status Distribution</span></div>
+        <div class="chart-card-hint" id="t_chart2Hint">Share of roles that are short-staffed, over-staffed, or right on target.</div>
         <div class="chart-container"><canvas id="statusDonutChart"></canvas></div>
     </div>
     <div class="chart-card" style="grid-column:1/-1">
         <div class="chart-card-title"><i class="fa-solid fa-arrow-down-wide-short" style="color:#ffb020"></i><span id="t_chart3">Top Gaps by Job (Shortage → Surplus)</span></div>
+        <div class="chart-card-hint" id="t_chart3Hint">The roles furthest from target — biggest hiring needs on the left, biggest excess on the right.</div>
         <div class="chart-container"><canvas id="gapBarChart"></canvas></div>
     </div>
 </div>
 
 <!-- ══════════ DEPARTMENT SECTIONS ══════════ -->
-<div class="sec-title"><i class="fa-solid fa-layer-group"></i><span id="t_deptHeader">Departments</span></div>
+<div class="sec-title"><i class="fa-solid fa-layer-group"></i><span id="t_deptHeader">Departments</span><span style="font-weight:500; text-transform:none; letter-spacing:0; opacity:.7; margin-left:6px;" id="t_deptHint">— tap any card for full details</span></div>
 <div id="deptContainer"></div>
+
+<!-- ══════════ JOB DETAIL MODAL ══════════ -->
+<div id="jobModalOverlay" onclick="if(event.target===this) closeJobModal()">
+    <div class="job-modal" id="jobModalBox">
+        <div class="job-modal-head">
+            <div>
+                <div class="job-modal-dept" id="jm_dept"></div>
+                <div class="job-modal-title" id="jm_title"></div>
+            </div>
+            <button class="job-modal-close" onclick="closeJobModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="job-modal-badge-row">
+            <span class="job-modal-badge" id="jm_badge"></span>
+        </div>
+        <div class="job-modal-nums">
+            <div class="job-modal-numbox"><div class="l" id="jm_l_required">Required</div><div class="v" id="jm_v_required"></div></div>
+            <div class="job-modal-numbox"><div class="l" id="jm_l_actual">Actual</div><div class="v" id="jm_v_actual"></div></div>
+            <div class="job-modal-numbox"><div class="l" id="jm_l_gap">Gap</div><div class="v" id="jm_v_gap"></div></div>
+        </div>
+        <div class="job-modal-section">
+            <div class="job-modal-progress-label"><span id="jm_l_fulfillment">Fulfillment</span><span id="jm_v_fulfillment"></span></div>
+            <div class="job-modal-progress-track"><div class="job-modal-progress-fill" id="jm_progress_fill"></div></div>
+            <div class="job-modal-explain" id="jm_explain"></div>
+            <div class="job-modal-note-box" id="jm_note_box" style="display:none;">
+                <span class="l" id="jm_l_note">Note</span>
+                <span id="jm_v_note"></span>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
 /* ══════════ LOGIN ══════════ */
@@ -267,6 +334,8 @@ const deptColors = ['#6c63ff','#0fd493','#f3524a','#4594f5','#ff8c40','#f065b8',
 let rawJobs = [];      // {dept, job, required, actual, note, diff, status}
 let statusFilter = 'all';
 let charts = {};
+let lastFilteredList = [];   // keeps the currently rendered list so the modal can look jobs up by id
+let jobIdCounter = 0;
 
 /* ══════════ FETCH & PARSE ══════════ */
 async function fetchData(){
@@ -293,7 +362,8 @@ function parseRows(rows){
         let status = 'fine';
         if(diff < 0) status = 'shortage';
         else if(diff > 0) status = 'surplus';
-        rawJobs.push({ dept: lastDept || 'Unassigned', job, required, actual, note, diff, status });
+        jobIdCounter++;
+        rawJobs.push({ id: jobIdCounter, dept: lastDept || 'Unassigned', job, required, actual, note, diff, status });
     });
     populateDeptFilter();
     renderDashboard();
@@ -332,6 +402,7 @@ function renderDashboard(){
         return true;
     });
 
+    lastFilteredList = filtered;
     renderKPIs(filtered);
     renderDeptSections(filtered);
     renderCharts(filtered);
@@ -405,24 +476,85 @@ function renderDeptSections(list){
 
 function renderJobCard(j){
     let jc, statusIcon, statusText;
-    if(j.status==='shortage'){ jc='var(--shortage)'; statusIcon='fa-arrow-trend-down'; statusText=`${T('shortage')} · ${T('needMore').replace('{n}', Math.abs(j.diff))}`; }
-    else if(j.status==='surplus'){ jc='var(--surplus)'; statusIcon='fa-arrow-trend-up'; statusText=`${T('surplus')} · ${T('needReduce').replace('{n}', j.diff)}`; }
+    const pct = j.required>0 ? Math.round((j.actual/j.required)*100) : (j.actual>0 ? 100 : 0);
+    const barPct = Math.min(pct,100);
+    if(j.status==='shortage'){ jc='var(--shortage)'; statusIcon='fa-arrow-trend-down'; statusText=T('needMore').replace('{n}', Math.abs(j.diff)); }
+    else if(j.status==='surplus'){ jc='var(--surplus)'; statusIcon='fa-arrow-trend-up'; statusText=T('needReduce').replace('{n}', j.diff); }
     else { jc='var(--fine)'; statusIcon='fa-circle-check'; statusText=T('targetReached'); }
+    const chevron = document.documentElement.getAttribute('dir')==='rtl' ? 'fa-chevron-left' : 'fa-chevron-right';
 
-    return `<div class="job-card" style="--jc:${jc}">
-        <div class="job-title">${escapeHtml(j.job)}</div>
+    return `<div class="job-card" style="--jc:${jc}" onclick="openJobModal(${j.id})">
+        <div class="job-title"><span>${escapeHtml(j.job)}</span><i class="fa-solid ${chevron}"></i></div>
         <div class="job-nums">
             <div class="job-num-box"><div class="job-num-label">${T('required')}</div><div class="job-num-val">${j.required}</div></div>
             <div class="job-num-box"><div class="job-num-label">${T('actual')}</div><div class="job-num-val">${j.actual}</div></div>
         </div>
-        <div class="job-status-row"><i class="fa-solid ${statusIcon}"></i>${statusText}</div>
-        ${j.note ? `<div class="job-note">${escapeHtml(j.note)}</div>` : ''}
+        <div class="job-progress-track"><div class="job-progress-fill" style="width:${barPct}%"></div></div>
+        <div class="job-status-row"><span><i class="fa-solid ${statusIcon}"></i> ${statusText}</span><span class="status-pct">${pct}%</span></div>
+        ${j.note ? `<div class="job-note"><i class="fa-solid fa-note-sticky"></i> ${escapeHtml(j.note)}</div>` : ''}
     </div>`;
 }
 
 function toggleDept(idx){
     document.getElementById(`dept_${idx}`).classList.toggle('collapsed');
 }
+
+/* ══════════ JOB DETAIL MODAL ══════════ */
+function openJobModal(id){
+    const j = rawJobs.find(x=>x.id===id);
+    if(!j) return;
+    let jc, statusText, explainKey;
+    if(j.status==='shortage'){ jc='var(--shortage)'; statusText=T('shortage'); explainKey='explainShortage'; }
+    else if(j.status==='surplus'){ jc='var(--surplus)'; statusText=T('surplus'); explainKey='explainSurplus'; }
+    else { jc='var(--fine)'; statusText=T('onTarget'); explainKey='explainFine'; }
+
+    const pct = j.required>0 ? Math.round((j.actual/j.required)*100) : (j.actual>0 ? 100 : 0);
+    const barPct = Math.min(pct,100);
+
+    document.getElementById('jm_dept').textContent = j.dept;
+    document.getElementById('jm_title').textContent = j.job;
+    document.getElementById('jm_badge').innerHTML = `<i class="fa-solid fa-circle" style="font-size:7px;"></i> ${statusText}`;
+    document.getElementById('jm_badge').style.background = `color-mix(in srgb, ${jc} 18%, transparent)`;
+    document.getElementById('jm_badge').style.color = jc;
+    document.getElementById('jm_l_required').textContent = T('required');
+    document.getElementById('jm_l_actual').textContent = T('actual');
+    document.getElementById('jm_l_gap').textContent = T('gap');
+    document.getElementById('jm_v_required').textContent = j.required;
+    document.getElementById('jm_v_actual').textContent = j.actual;
+    document.getElementById('jm_v_gap').textContent = (j.diff>0?'+':'')+j.diff;
+    document.getElementById('jm_v_gap').style.color = jc;
+    document.getElementById('jm_l_fulfillment').textContent = T('kpiFulfillment');
+    document.getElementById('jm_v_fulfillment').textContent = pct+'%';
+    const fill = document.getElementById('jm_progress_fill');
+    fill.style.width = barPct+'%';
+    fill.style.background = jc;
+
+    let explainText = T(explainKey)
+        .replace('{job}', j.job)
+        .replace('{dept}', j.dept)
+        .replace('{n}', Math.abs(j.diff))
+        .replace('{req}', j.required)
+        .replace('{act}', j.actual);
+    document.getElementById('jm_explain').innerHTML = explainText;
+
+    const noteBox = document.getElementById('jm_note_box');
+    if(j.note){
+        noteBox.style.display = 'block';
+        document.getElementById('jm_l_note').textContent = T('noteLabel');
+        document.getElementById('jm_v_note').textContent = j.note;
+    } else {
+        noteBox.style.display = 'none';
+    }
+
+    document.getElementById('jobModalOverlay').classList.add('show');
+    document.body.classList.add('modal-open');
+}
+
+function closeJobModal(){
+    document.getElementById('jobModalOverlay').classList.remove('show');
+    document.body.classList.remove('modal-open');
+}
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeJobModal(); });
 
 /* ══════════ CHARTS ══════════ */
 function renderCharts(list){
@@ -450,7 +582,7 @@ function renderCharts(list){
         ]},
         options:{ responsive:true, maintainAspectRatio:false,
             plugins:{ legend:{ position:'bottom', labels:{ color:textColor, font:{family:'Inter', size:10} } },
-                datalabels:{ display:false } },
+                datalabels:{ color:textFull, anchor:'end', align:'top', font:{family:'Roboto Mono', size:9, weight:'700'}, formatter:(v)=>v>0?v:'' } },
             scales:{ y:{ beginAtZero:true, grid:{color:gridColor}, ticks:{color:textColor, font:{family:'Roboto Mono', size:10}} },
                      x:{ grid:{display:false}, ticks:{color:textColor, font:{family:'Inter', weight:'600', size:9}} } } }
     });
@@ -499,39 +631,57 @@ function toggleTheme(){
 const I18N = {
 en: {
     loginSub:'Manpower Planning Portal', signIn:'Sign In', invalid:'Invalid username or password', authOnly:'Authorized Access Only',
-    headerSub:'Manpower Planning', mainDashboard:'Main Dashboard', allDepts:'All Departments', searchPlaceholder:'Search job title...',
+    headerSub:'Manpower Planning', mainDashboard:'Main Dashboard', turnoverDashboard:'Turnover Dashboard', allDepts:'All Departments', searchPlaceholder:'Search job title...',
     stAll:'All', stShort:'Shortage', stSurplus:'Surplus', stFine:'On Target',
     chartsHeader:'Overview Charts', chart1:'Required vs Actual by Department', chart2:'Job Status Distribution', chart3:'Top Gaps by Job (Shortage → Surplus)',
-    deptHeader:'Departments', noResults:'No matching roles found for the current filters.',
+    chart1Hint:'Compare planned headcount to who is actually there, department by department.',
+    chart2Hint:'Share of roles that are short-staffed, over-staffed, or right on target.',
+    chart3Hint:'The roles furthest from target — biggest hiring needs on the left, biggest excess on the right.',
+    deptHeader:'Departments', deptHint:'— tap any card for full details', noResults:'No matching roles found for the current filters.',
     kpiRequired:'Total Required', kpiActual:'Total Actual', kpiGap:'Overall Gap', kpiFulfillment:'Fulfillment', kpiShortageJobs:'Shortage Roles', kpiSurplusJobs:'Surplus Roles', kpiFineJobs:'On-Target Roles',
     kpiPositions:'positions', kpiHeadcount:'headcount', kpiOfTarget:'of target', kpiRoles:'roles',
     kpiNeedHiring:'need to hire', kpiNeedReduce:'need to reduce', kpiBalanced:'balanced',
     required:'Required', actual:'Actual', gap:'Gap', shortage:'Shortage', surplus:'Surplus', onTarget:'On Target', targetReached:'Target reached',
-    needMore:'{n} more needed', needReduce:'reduce by {n}'
+    needMore:'{n} more needed', needReduce:'reduce by {n}', noteLabel:'Note',
+    explainShortage:'<b>{job}</b> in {dept} is short-staffed. It needs <b>{n}</b> more people to reach the required headcount of {req} (currently {act}).',
+    explainSurplus:'<b>{job}</b> in {dept} has more staff than needed. It should be reduced by <b>{n}</b> to match the required headcount of {req} (currently {act}).',
+    explainFine:'<b>{job}</b> in {dept} is exactly at the required headcount of {req}. No action needed.'
 },
 tr: {
     loginSub:'İşgücü Planlama Portalı', signIn:'Giriş Yap', invalid:'Kullanıcı adı veya şifre hatalı', authOnly:'Yalnızca Yetkili Erişim',
-    headerSub:'İşgücü Planlama', mainDashboard:'Ana Panel', allDepts:'Tüm Departmanlar', searchPlaceholder:'Görev unvanı ara...',
+    headerSub:'İşgücü Planlama', mainDashboard:'Ana Panel', turnoverDashboard:'Devir Paneli', allDepts:'Tüm Departmanlar', searchPlaceholder:'Görev unvanı ara...',
     stAll:'Tümü', stShort:'Eksik', stSurplus:'Fazla', stFine:'Hedefte',
     chartsHeader:'Genel Bakış Grafikleri', chart1:'Departmana Göre Gerekli vs Mevcut', chart2:'İş Durumu Dağılımı', chart3:'En Büyük Farklar (Eksik → Fazla)',
-    deptHeader:'Departmanlar', noResults:'Seçili filtrelerle eşleşen görev bulunamadı.',
+    chart1Hint:'Planlanan personel sayısını departman bazında mevcut durumla karşılaştırın.',
+    chart2Hint:'Eksik, fazla veya hedefte olan rollerin oranı.',
+    chart3Hint:'Hedeften en uzak roller — solda en çok işe alım ihtiyacı, sağda en büyük fazlalık.',
+    deptHeader:'Departmanlar', deptHint:'— detaylar için karta dokunun', noResults:'Seçili filtrelerle eşleşen görev bulunamadı.',
     kpiRequired:'Toplam Gerekli', kpiActual:'Toplam Mevcut', kpiGap:'Genel Fark', kpiFulfillment:'Doluluk Oranı', kpiShortageJobs:'Eksik Roller', kpiSurplusJobs:'Fazla Roller', kpiFineJobs:'Hedefteki Roller',
     kpiPositions:'pozisyon', kpiHeadcount:'personel', kpiOfTarget:'hedefin', kpiRoles:'rol',
     kpiNeedHiring:'işe alım gerekiyor', kpiNeedReduce:'azaltma gerekiyor', kpiBalanced:'dengeli',
     required:'Gerekli', actual:'Mevcut', gap:'Fark', shortage:'Eksik', surplus:'Fazla', onTarget:'Hedefte', targetReached:'Hedefe ulaşıldı',
-    needMore:'{n} kişi daha gerekli', needReduce:'{n} azaltılmalı'
+    needMore:'{n} kişi daha gerekli', needReduce:'{n} azaltılmalı', noteLabel:'Not',
+    explainShortage:'{dept} departmanındaki <b>{job}</b> rolünde personel eksik. {req} olması gereken sayıya ulaşmak için <b>{n}</b> kişi daha gerekiyor (şu an {act}).',
+    explainSurplus:'{dept} departmanındaki <b>{job}</b> rolünde fazla personel var. {req} hedefine ulaşmak için <b>{n}</b> kişi azaltılmalı (şu an {act}).',
+    explainFine:'{dept} departmanındaki <b>{job}</b> rolü tam olarak {req} hedefinde. Herhangi bir işlem gerekmiyor.'
 },
 ar: {
     loginSub:'بوابة تخطيط القوى العاملة', signIn:'تسجيل الدخول', invalid:'اسم المستخدم أو كلمة المرور غير صحيحة', authOnly:'دخول مصرح به فقط',
-    headerSub:'تخطيط القوى العاملة', mainDashboard:'الداشبورد الرئيسي', allDepts:'كل الأقسام', searchPlaceholder:'ابحث عن اسم الوظيفة...',
+    headerSub:'تخطيط القوى العاملة', mainDashboard:'الداشبورد الرئيسي', turnoverDashboard:'داشبورد الدوران الوظيفي', allDepts:'كل الأقسام', searchPlaceholder:'ابحث عن اسم الوظيفة...',
     stAll:'الكل', stShort:'عجز', stSurplus:'فائض', stFine:'مطابق للهدف',
     chartsHeader:'الرسوم البيانية العامة', chart1:'المطلوب مقابل الفعلي حسب القسم', chart2:'توزيع حالة الوظائف', chart3:'أكبر الفروقات لكل وظيفة (عجز ← فائض)',
-    deptHeader:'الأقسام', noResults:'لا توجد وظائف مطابقة للفلاتر الحالية.',
+    chart1Hint:'قارن العدد المخطط له بالعدد الفعلي الموجود، قسم بقسم.',
+    chart2Hint:'نسبة الوظائف التي بها عجز أو فائض أو المطابقة تمامًا للهدف.',
+    chart3Hint:'الوظائف الأبعد عن الهدف — أكبر احتياج للتوظيف على اليسار، وأكبر فائض على اليمين.',
+    deptHeader:'الأقسام', deptHint:'— اضغط على أي كارت لعرض التفاصيل الكاملة', noResults:'لا توجد وظائف مطابقة للفلاتر الحالية.',
     kpiRequired:'إجمالي المطلوب', kpiActual:'إجمالي الفعلي', kpiGap:'الفارق الكلي', kpiFulfillment:'نسبة التغطية', kpiShortageJobs:'وظائف بها عجز', kpiSurplusJobs:'وظائف بها فائض', kpiFineJobs:'وظائف مطابقة للهدف',
     kpiPositions:'وظيفة', kpiHeadcount:'موظف', kpiOfTarget:'من الهدف', kpiRoles:'وظيفة',
     kpiNeedHiring:'يحتاج توظيف', kpiNeedReduce:'يحتاج تخفيض', kpiBalanced:'متوازن',
     required:'المطلوب', actual:'الفعلي', gap:'الفارق', shortage:'عجز', surplus:'فائض', onTarget:'مطابق للهدف', targetReached:'تم الوصول للهدف',
-    needMore:'يلزم توظيف {n} إضافي', needReduce:'يلزم تخفيض {n}'
+    needMore:'يلزم توظيف {n} إضافي', needReduce:'يلزم تخفيض {n}', noteLabel:'ملاحظة',
+    explainShortage:'وظيفة <b>{job}</b> في قسم {dept} بها عجز في العدد. يلزم توظيف <b>{n}</b> شخص إضافي للوصول إلى العدد المطلوب {req} (العدد الحالي {act}).',
+    explainSurplus:'وظيفة <b>{job}</b> في قسم {dept} بها عدد أكبر من المطلوب. يلزم تخفيض <b>{n}</b> شخص للوصول إلى العدد المطلوب {req} (العدد الحالي {act}).',
+    explainFine:'وظيفة <b>{job}</b> في قسم {dept} مطابقة تمامًا للعدد المطلوب {req}. لا يوجد إجراء مطلوب.'
 }
 };
 let currentLang = 'en';
@@ -553,6 +703,7 @@ function applyTranslations(){
     document.getElementById('t_authOnly').textContent = T('authOnly');
     document.getElementById('t_headerSub').textContent = T('headerSub');
     document.getElementById('t_mainDashboard').textContent = T('mainDashboard');
+    document.getElementById('t_turnoverDashboard').textContent = T('turnoverDashboard');
     document.getElementById('searchInput').placeholder = T('searchPlaceholder');
     document.getElementById('t_stAll').textContent = T('stAll');
     document.getElementById('t_stShort').textContent = T('stShort');
@@ -562,7 +713,11 @@ function applyTranslations(){
     document.getElementById('t_chart1').textContent = T('chart1');
     document.getElementById('t_chart2').textContent = T('chart2');
     document.getElementById('t_chart3').textContent = T('chart3');
+    document.getElementById('t_chart1Hint').textContent = T('chart1Hint');
+    document.getElementById('t_chart2Hint').textContent = T('chart2Hint');
+    document.getElementById('t_chart3Hint').textContent = T('chart3Hint');
     document.getElementById('t_deptHeader').textContent = T('deptHeader');
+    document.getElementById('t_deptHint').textContent = T('deptHint');
 }
 
 fetchData();
