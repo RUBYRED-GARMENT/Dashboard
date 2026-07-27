@@ -23,6 +23,7 @@ body.light-mode {
 * { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.3s, color 0.3s, border-color 0.3s; }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
 body.login-locked { overflow: hidden; }
+body.modal-open { overflow: hidden; }
 html[dir="rtl"] body { font-family: 'DM Sans', 'Inter', sans-serif; }
 
 /* ══════════ LOGIN OVERLAY ══════════ */
@@ -67,6 +68,7 @@ html[dir="rtl"] body { font-family: 'DM Sans', 'Inter', sans-serif; }
 .page-title { font-family:'Inter',sans-serif; font-size:20px; font-weight:800; color: var(--accent); letter-spacing:-.5px; }
 .page-title small { display:block; font-size:10px; font-weight:700; color: var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:2px; }
 .icon-btn { background: var(--surface2); color: var(--text); border:1px solid var(--border); width:38px; height:38px; border-radius:10px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
+.nav-btn { width:auto; padding:0 14px; gap:8px; text-decoration:none; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:700; }
 .pill-select { background: var(--surface2); color: var(--text); border:1px solid var(--border); padding:9px 14px; border-radius:10px; font-weight:600; cursor:pointer; outline:none; font-size:12.5px; font-family:'Inter',sans-serif; }
 .pill-select.scope-active { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
 .header-right { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
@@ -83,6 +85,7 @@ html[dir="rtl"] body { font-family: 'DM Sans', 'Inter', sans-serif; }
 .sec-title { font-family:'Inter',sans-serif; font-size:11px; letter-spacing:1.5px; color: var(--muted); text-transform:uppercase; margin:26px 0 12px; border-bottom:1px solid var(--border); padding-bottom:5px; font-weight:700; display:flex; align-items:center; gap:8px; }
 .sec-title .scope-badge { margin-left:auto; font-family:'Roboto Mono',monospace; font-size:11px; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); padding:3px 10px; border-radius:12px; letter-spacing:0; text-transform:none; }
 html[dir="rtl"] .sec-title .scope-badge { margin-left:0; margin-right:auto; }
+.sec-hint { font-size:10.5px; color: var(--muted); opacity:.8; margin:-8px 0 14px; font-family:'DM Sans',sans-serif; }
 
 /* ══════════ KPI GRID ══════════ */
 .kpi-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap:12px; margin-bottom: 24px; }
@@ -96,7 +99,8 @@ html[dir="rtl"] .kpi-card::before { left:0; right:0; }
 /* ══════════ CHARTS ══════════ */
 .charts-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(340px,1fr)); gap:20px; }
 .chart-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:20px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); }
-.chart-card-title { font-size:11px; font-weight:700; color: var(--muted); text-transform:uppercase; letter-spacing:1.2px; font-family:'Inter',sans-serif; margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+.chart-card-title { font-size:11px; font-weight:700; color: var(--muted); text-transform:uppercase; letter-spacing:1.2px; font-family:'Inter',sans-serif; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+.chart-card-hint { font-size:10.5px; color: var(--muted); opacity:.75; margin-bottom:14px; font-family:'DM Sans',sans-serif; }
 .chart-container { position:relative; height:300px; }
 
 /* ══════════ REASON RANK TABLE ══════════ */
@@ -111,7 +115,51 @@ html[dir="rtl"] .reason-count { text-align:left; }
 .no-results { text-align:center; padding:50px 20px; color: var(--muted); font-family:'Inter',sans-serif; }
 .no-results i { font-size:34px; opacity:.2; display:block; margin-bottom:10px; }
 
+/* ══════════ DEPARTMENT RESIGNATION CARDS ══════════ */
+.dept-resign-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); gap:14px; margin-bottom:24px; }
+.dr-card { background: var(--surface); border:1px solid var(--border); border-top:4px solid var(--dc); border-radius: var(--radius); padding:18px; cursor:pointer; position:relative; }
+.dr-card:hover { border-color: var(--dc); transform: translateY(-2px); box-shadow: 0 10px 22px -8px rgba(0,0,0,0.4); }
+.dr-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:14px; }
+.dr-card-name { font-family:'Inter',sans-serif; font-size:13px; font-weight:800; color: var(--text); text-transform:uppercase; letter-spacing:.3px; }
+.dr-sev-badge { font-size:9px; font-weight:800; padding:3px 8px; border-radius:20px; font-family:'Inter',sans-serif; letter-spacing:.4px; white-space:nowrap; }
+.dr-card-val { font-family:'Roboto Mono',monospace; font-size:30px; font-weight:800; color: var(--dc); line-height:1; }
+.dr-card-val-label { font-size:9.5px; color: var(--muted); text-transform:uppercase; font-weight:700; font-family:'Inter',sans-serif; letter-spacing:.4px; margin-top:4px; margin-bottom:12px; }
+.dr-card-rate { display:flex; justify-content:space-between; font-size:11px; font-family:'Inter',sans-serif; color: var(--muted); margin-bottom:10px; }
+.dr-card-rate b { color: var(--text); font-family:'Roboto Mono',monospace; }
+.dr-card-mini { font-size:10.5px; color: var(--muted); font-family:'DM Sans',sans-serif; padding-top:10px; border-top:1px dashed var(--border); line-height:1.7; }
+.dr-card-mini b { color: var(--text); }
+.dr-card-chevron { position:absolute; top:16px; right:16px; color: var(--muted); font-size:11px; }
+html[dir="rtl"] .dr-card-chevron { right:auto; left:16px; }
+
+/* ══════════ HOTSPOT SECTION ══════════ */
+.hotspot-banner { display:flex; align-items:center; gap:16px; background: linear-gradient(120deg, color-mix(in srgb, var(--shortage) 12%, var(--surface)), var(--surface)); border:1px solid rgba(243,82,74,0.3); border-radius: var(--radius); padding:20px 22px; margin-bottom:16px; }
+.hotspot-icon { width:52px; height:52px; min-width:52px; border-radius:14px; background: rgba(243,82,74,0.15); color: var(--shortage); display:flex; align-items:center; justify-content:center; font-size:22px; }
+.hotspot-text { font-size:13.5px; font-family:'DM Sans',sans-serif; color: var(--text); line-height:1.6; }
+.hotspot-text b { color: var(--shortage); font-family:'Inter',sans-serif; }
+
 @media (max-width:768px){ .chart-container{ height:260px; } }
+
+/* ══════════ DETAIL MODAL ══════════ */
+#deptModalOverlay { position:fixed; inset:0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index:2000; display:none; align-items:center; justify-content:center; padding:20px; }
+#deptModalOverlay.show { display:flex; }
+.dr-modal { background: var(--surface); border:1px solid var(--border); border-radius:20px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6); border-top:5px solid var(--dc); animation: slideUp .35s cubic-bezier(.34,1.5,.64,1) both; }
+.dr-modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:22px 22px 6px; }
+.dr-modal-scope { font-size:10px; font-weight:700; color: var(--muted); text-transform:uppercase; letter-spacing:1px; font-family:'Inter',sans-serif; margin-bottom:5px; }
+.dr-modal-title { font-size:18px; font-weight:800; font-family:'Inter',sans-serif; color: var(--text); }
+.dr-modal-close { background: var(--surface2); border:1px solid var(--border); color: var(--muted); width:32px; height:32px; min-width:32px; border-radius:9px; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; }
+.dr-modal-nums { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; padding:14px 22px 18px; }
+.dr-modal-numbox { background: var(--surface2); border:1px solid var(--border); border-radius:12px; padding:12px 8px; text-align:center; }
+.dr-modal-numbox .l { font-size:9px; color: var(--muted); text-transform:uppercase; font-weight:700; font-family:'Inter',sans-serif; letter-spacing:.4px; margin-bottom:5px; }
+.dr-modal-numbox .v { font-family:'Roboto Mono',monospace; font-size:17px; font-weight:700; color: var(--text); }
+.dr-modal-section { padding: 4px 22px 20px; }
+.dr-modal-section-title { font-size:10.5px; font-weight:800; color: var(--muted); text-transform:uppercase; letter-spacing:.6px; font-family:'Inter',sans-serif; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.dr-modal-list { display:flex; flex-direction:column; gap:8px; margin-bottom:6px; }
+.dr-modal-row { display:flex; align-items:center; gap:10px; }
+.dr-modal-row-name { min-width:100px; max-width:150px; font-size:11.5px; font-weight:700; font-family:'Inter',sans-serif; color: var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dr-modal-row-track { flex:1; height:11px; background: var(--surface2); border-radius:6px; overflow:hidden; border:1px solid var(--border); }
+.dr-modal-row-fill { height:100%; border-radius:6px; }
+.dr-modal-row-count { min-width:34px; text-align:right; font-family:'Roboto Mono',monospace; font-size:11.5px; font-weight:700; color: var(--muted); }
+.dr-modal-empty { font-size:11.5px; color: var(--muted); font-style:italic; font-family:'DM Sans',sans-serif; padding:6px 0; }
 </style>
 </head>
 <body class="login-locked">
@@ -153,8 +201,11 @@ html[dir="rtl"] .reason-count { text-align:left; }
         <div class="page-title">RUBYRED <small id="t_headerSub">Turnover Dashboard</small></div>
     </div>
     <div class="header-right">
-        <a href="index.html" class="icon-btn" style="width:auto; padding:0 14px; gap:8px; text-decoration:none; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:700;" title="Main Dashboard">
+        <a href="index.html" class="icon-btn nav-btn" title="Main Dashboard">
             <i class="fa-solid fa-house"></i><span id="t_mainDashboard">Main Dashboard</span>
+        </a>
+        <a href="manpower.html" class="icon-btn nav-btn" title="Manpower Dashboard">
+            <i class="fa-solid fa-users"></i><span id="t_manpowerDashboard">Manpower Dashboard</span>
         </a>
         <select class="pill-select" id="langSelect" onchange="setLanguage(this.value)">
             <option value="en">EN — English</option>
@@ -197,23 +248,71 @@ html[dir="rtl"] .reason-count { text-align:left; }
 <div class="charts-grid">
     <div class="chart-card" style="grid-column:1/-1">
         <div class="chart-card-title"><i class="fa-solid fa-chart-line" style="color:#6c63ff"></i><span id="t_chart1">Turnover Rate Trend (%)</span></div>
+        <div class="chart-card-hint" id="t_chart1Hint">How the turnover rate has moved over time.</div>
         <div class="chart-container"><canvas id="trendChart"></canvas></div>
     </div>
     <div class="chart-card">
         <div class="chart-card-title"><i class="fa-solid fa-right-left" style="color:#0fd493"></i><span id="t_chart2">Joiners vs Left</span></div>
+        <div class="chart-card-hint" id="t_chart2Hint">People coming in compared to people leaving.</div>
         <div class="chart-container"><canvas id="flowChart"></canvas></div>
     </div>
     <div class="chart-card">
         <div class="chart-card-title"><i class="fa-solid fa-chart-pie" style="color:#f3524a"></i><span id="t_chart3">Leaving Reasons Breakdown</span></div>
+        <div class="chart-card-hint" id="t_chart3Hint">Why people are leaving, factory-wide for the current selection.</div>
         <div class="chart-container"><canvas id="reasonDonut"></canvas></div>
     </div>
     <div class="chart-card" id="deptCompareCard" style="grid-column:1/-1">
         <div class="chart-card-title"><i class="fa-solid fa-building" style="color:#ffb020"></i><span id="t_chart4">Turnover Rate by Department</span></div>
+        <div class="chart-card-hint" id="t_chart4Hint">Which departments have the highest turnover rate right now.</div>
         <div class="chart-container"><canvas id="deptCompareChart"></canvas></div>
     </div>
     <div class="chart-card" style="grid-column:1/-1">
         <div class="chart-card-title"><i class="fa-solid fa-ranking-star" style="color:#a78bfa"></i><span id="t_chart5">Top Leaving Reasons (Ranked)</span></div>
+        <div class="chart-card-hint" id="t_chart5Hint">All leaving reasons ranked from most to least common.</div>
         <div class="reason-rank" id="reasonRank"></div>
+    </div>
+</div>
+
+<!-- ══════════ DEPARTMENT RESIGNATION CARDS ══════════ -->
+<div class="sec-title"><i class="fa-solid fa-building-user"></i><span id="t_deptSection">Departments — Resignations</span><span class="scope-badge" id="scopeBadge3">—</span></div>
+<div class="sec-hint" id="t_deptSectionHint">Tap any department card to see which jobs and reasons are behind its resignations.</div>
+<div class="dept-resign-grid" id="deptResignContainer"></div>
+
+<!-- ══════════ HOTSPOT SECTION ══════════ -->
+<div class="sec-title"><i class="fa-solid fa-fire"></i><span id="t_hotspotSection">Resignation Hotspot</span><span class="scope-badge" id="scopeBadge4">—</span></div>
+<div id="hotspotBanner"></div>
+<div class="chart-card">
+    <div class="chart-card-title"><i class="fa-solid fa-arrow-down-wide-short" style="color:#f3524a"></i><span id="t_hotspotRankTitle">Departments Ranked by Resignations</span></div>
+    <div class="reason-rank" id="hotspotRank"></div>
+</div>
+
+<!-- ══════════ DEPARTMENT DETAIL MODAL ══════════ -->
+<div id="deptModalOverlay" onclick="if(event.target===this) closeDeptModal()">
+    <div class="dr-modal" id="deptModalBox">
+        <div class="dr-modal-head">
+            <div>
+                <div class="dr-modal-scope" id="dm_scope"></div>
+                <div class="dr-modal-title" id="dm_title"></div>
+            </div>
+            <button class="dr-modal-close" onclick="closeDeptModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="dr-modal-nums">
+            <div class="dr-modal-numbox"><div class="l" id="dm_l_left">Left</div><div class="v" id="dm_v_left"></div></div>
+            <div class="dr-modal-numbox"><div class="l" id="dm_l_joiners">Joiners</div><div class="v" id="dm_v_joiners"></div></div>
+            <div class="dr-modal-numbox"><div class="l" id="dm_l_rate">Rate</div><div class="v" id="dm_v_rate"></div></div>
+        </div>
+        <div class="dr-modal-section">
+            <div class="dr-modal-section-title"><i class="fa-solid fa-id-badge"></i><span id="dm_l_jobsTitle">Resignations by Job Title</span></div>
+            <div class="dr-modal-list" id="dm_jobsList"></div>
+        </div>
+        <div class="dr-modal-section" id="dm_subdeptSection">
+            <div class="dr-modal-section-title"><i class="fa-solid fa-diagram-project"></i><span id="dm_l_subdeptTitle">Resignations by Sub-Department / Line</span></div>
+            <div class="dr-modal-list" id="dm_subdeptList"></div>
+        </div>
+        <div class="dr-modal-section">
+            <div class="dr-modal-section-title"><i class="fa-solid fa-comment-dots"></i><span id="dm_l_reasonsTitle">Resignations by Reason</span></div>
+            <div class="dr-modal-list" id="dm_reasonsList"></div>
+        </div>
     </div>
 </div>
 
@@ -245,35 +344,60 @@ function doLogin(){
     },600);
 }
 window.addEventListener('DOMContentLoaded', ()=>{ document.getElementById('loginUsername').focus(); applyTranslations(); });
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeDeptModal(); });
 
 /* ══════════ GOOGLE SHEET CONFIG ══════════
-   Tab name: turnover
+   TAB 1 — "turnover"  (unchanged, already existed)
    Row 1 = header. Columns:
    A = Month              (format YYYY-MM, e.g. 2026-01)
-   B = Department          (must match your 10 department names)
+   B = Department          (must match your department names)
    C = Headcount Start
    D = Joiners
    E = Left                (total leavers this month for this department)
    F = Headcount End
-   G onward = ANY number of "reason" columns. The column header text
-       IS the reason name (e.g. "Another Job", "Marriage", "Absence"...).
-       Add or remove reason columns freely — the dashboard reads them
-       automatically from row 1, no code changes needed.
+   G onward = ANY number of "reason" columns (header text = reason name).
    Left should equal the sum of all reason columns in that row.
+   This tab still powers the KPI cards, trend, joiners/left and reason charts.
+
+   TAB 2 — "leaver_jobs"  (NEW — required for the job-title / line breakdown)
+   Row 1 = header. Columns:
+   A = Month           (same YYYY-MM format, must match the turnover tab)
+   B = Department       (must match department names used in "turnover",
+                          e.g. Production, Cutting, Warehouse...)
+   C = Sub Department     (OPTIONAL — only for departments that are split into
+                            lines/units, e.g. Line 1, Line 2 ... Line 24 inside
+                            Production. Leave this cell blank for any
+                            department that doesn't have that extra layer —
+                            its "by line" section will just show no data,
+                            which is expected and fine.)
+   D = Job Title         (e.g. Machine Singer, Ironing, Packing...)
+   E = Count              (OPTIONAL — leave blank and add one row per person
+                            who left, each row = 1. Or fill it in on one row
+                            per job title with a number, if you prefer
+                            already-totaled numbers instead of one row per
+                            person.)
+   One row per Month + Department (+ Sub Department) + Job Title combination.
+   This is what powers "Resignations by Job Title" AND "Resignations by
+   Sub-Department / Line" inside each department's detail popup — neither
+   exists anywhere else in the old sheet, so this tab needs to be added for
+   that part of the dashboard to show real data.
 ═══════════════════════════════════════════════ */
 const SHEET_ID = '1j7IFj_tylNeqwui57JU7coeB6XXj0Lt7d4yBHaqmutE';
 const API_KEY  = 'AIzaSyB_dCi6NlG_jUCUY955eynfN0gF7KobQ4A';
 const RANGE    = 'turnover!A1:Z300';
+const RANGE_JOBS = 'leaver_jobs!A1:E2000';
 
 const deptColors = ['#6c63ff','#0fd493','#f3524a','#4594f5','#ff8c40','#f065b8','#a78bfa','#00d2ff','#fbbf24','#f87171'];
+const rankColors = ['#f3524a','#ffb020','#6c63ff','#0fd493','#4594f5','#ff8c40','#f065b8','#a78bfa','#00d2ff','#fbbf24'];
 
 let reasonLabels = [];   // dynamic list of reason column names, in sheet order
 let rawRows = [];        // {month, dept, start, joiners, left, end, reasons:{name:val}}
+let rawLeaverJobs = [];  // {month, dept, subdept, job, count}   -- from the new "leaver_jobs" tab
 let charts = {};
 
 /* ── ONE simple scope: either a period (all/3/6/12) OR one specific month.
-      Everything on the page (KPI cards + every chart) reads from this
-      same scope, so there's only ever one source of truth. ── */
+      Everything on the page (KPI cards + every chart + every card) reads
+      from this same scope, so there's only ever one source of truth. ── */
 let scopeType = 'period';   // 'period' | 'month'
 let scopePeriod = 'all';    // 'all' | '3' | '6' | '12'
 let scopeMonth = '';        // e.g. '2026-01'
@@ -281,9 +405,15 @@ let scopeMonth = '';        // e.g. '2026-01'
 /* ══════════ FETCH & PARSE ══════════ */
 async function fetchData(){
     try{
-        const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`);
-        const data = await res.json();
-        if(data.values) parseRows(data.values);
+        const [res1, res2] = await Promise.all([
+            fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`),
+            fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE_JOBS}?key=${API_KEY}`)
+        ]);
+        const data1 = await res1.json();
+        const data2 = await res2.json().catch(()=>({}));
+        if(data1.values) parseRows(data1.values);
+        if(data2 && data2.values) parseLeaverJobs(data2.values); else rawLeaverJobs = [];
+        renderDashboard();
     }catch(e){ console.error('Error loading sheet data', e); }
 }
 
@@ -306,7 +436,24 @@ function parseRows(rows){
     });
     populateDeptFilter();
     populateMonthFilter();
-    renderDashboard();
+}
+
+function parseLeaverJobs(rows){
+    const body = rows.slice(1);
+    rawLeaverJobs = [];
+    body.forEach(r=>{
+        const month   = (r[0]||'').trim();
+        const dept    = (r[1]||'').trim();
+        const subdept = (r[2]||'').trim();   // optional — e.g. "Line 5", blank for depts without lines
+        const job     = (r[3]||'').trim();
+        if(!month || !dept || !job) return;
+        // Count is optional: leave it blank if you're entering one row per person who left
+        // (each row then simply counts as 1), or fill it in if one row represents several
+        // people with the same job title.
+        const rawCount = (r[4]||'').trim();
+        const count = rawCount==='' ? 1 : (parseFloat(rawCount) || 1);
+        rawLeaverJobs.push({ month, dept, subdept, job, count });
+    });
 }
 
 function populateDeptFilter(){
@@ -376,6 +523,17 @@ function getScopedRows(){
     return rows;
 }
 
+/* Same month-window logic, but applied globally (used for the leaver_jobs tab,
+   which isn't affected by the department dropdown since we filter by
+   department separately per-card). */
+function monthAllowedGlobal(month){
+    const allMonths = [...new Set(rawRows.map(r=>r.month))].sort();
+    if(scopeType==='month') return month===scopeMonth;
+    if(scopePeriod==='all') return true;
+    const keep = new Set(allMonths.slice(-parseInt(scopePeriod)));
+    return keep.has(month);
+}
+
 function scopeBadgeText(){
     if(scopeType==='month') return scopeMonth || '—';
     if(scopePeriod==='all') return T('pAll');
@@ -389,10 +547,14 @@ function renderDashboard(){
     const badge = scopeBadgeText();
     document.getElementById('scopeBadge').textContent = badge;
     document.getElementById('scopeBadge2').textContent = badge;
+    document.getElementById('scopeBadge3').textContent = badge;
+    document.getElementById('scopeBadge4').textContent = badge;
 
     const scoped = getScopedRows();
     renderKPIs(scoped);
     renderCharts(scoped);
+    renderDeptResignCards(scoped);
+    renderHotspot(scoped);
 }
 
 function turnoverRate(start,end,left){
@@ -423,6 +585,51 @@ function aggregateByDept(rows){
         map[r.dept].end += r.end;
     });
     return map;
+}
+
+/* Reason totals for one specific department, from the same scoped rows
+   used everywhere else on the page (no need for the new tab — reasons
+   already live on the "turnover" tab per department). */
+function reasonsForDept(scopedRows, dept){
+    const rows = scopedRows.filter(r=>r.dept===dept);
+    const totals = {};
+    reasonLabels.forEach(label=>{ totals[label] = rows.reduce((a,r)=>a+(r.reasons[label]||0),0); });
+    return totals;
+}
+
+/* Job-title totals for one specific department, from the new "leaver_jobs" tab */
+function jobsForDept(dept){
+    const rows = rawLeaverJobs.filter(r=>r.dept===dept && monthAllowedGlobal(r.month));
+    const totals = {};
+    rows.forEach(r=>{ totals[r.job] = (totals[r.job]||0) + r.count; });
+    return totals;
+}
+
+/* Sub-department / line totals for one specific department (e.g. Line 1..24
+   inside Production). Departments that don't use sub-departments simply
+   return an empty object — that's expected, not an error. */
+function subDeptsForDept(dept){
+    const rows = rawLeaverJobs.filter(r=>r.dept===dept && r.subdept && monthAllowedGlobal(r.month));
+    const totals = {};
+    rows.forEach(r=>{ totals[r.subdept] = (totals[r.subdept]||0) + r.count; });
+    return totals;
+}
+
+/* Highest sub-department across ALL departments for the current scope —
+   used to enrich the hotspot banner (e.g. "...and within it, Line 5 has
+   the most resignations"). */
+function topSubDeptOverall(dept){
+    const totals = subDeptsForDept(dept);
+    let top='', val=0;
+    Object.entries(totals).forEach(([label,v])=>{ if(v>val){ val=v; top=label; } });
+    return { label: top, count: val };
+}
+
+function severityFor(rate){
+    if(rate>=8)  return { key:'critical', color:'var(--shortage)' };
+    if(rate>=4)  return { key:'high',     color:'var(--surplus)'  };
+    if(rate>=1)  return { key:'moderate', color:'#4594f5'         };
+    return         { key:'low',      color:'var(--fine)'     };
 }
 
 /* ══════════ KPI CARDS (always reflect current scope) ══════════ */
@@ -562,6 +769,164 @@ function renderCharts(scoped){
     document.getElementById('reasonRank').innerHTML = rankHtml;
 }
 
+/* ══════════ DEPARTMENT RESIGNATION CARDS ══════════ */
+function renderDeptResignCards(scoped){
+    const container = document.getElementById('deptResignContainer');
+    const byDept = aggregateByDept(scoped);
+    const depts = Object.keys(byDept);
+    if(depts.length===0){
+        container.innerHTML = `<div class="no-results" style="grid-column:1/-1"><i class="fa-solid fa-inbox"></i>${T('noResults')}</div>`;
+        return;
+    }
+    let html = '';
+    depts.forEach((dept, idx)=>{
+        const d = byDept[dept];
+        const rate = turnoverRate(d.start, d.end, d.left);
+        const sev = severityFor(rate);
+        const dc = deptColors[idx % deptColors.length];
+
+        // quick-glance extras shown right on the card, no click needed
+        const reasonTotals = reasonsForDept(scoped, dept);
+        let topReason='—', topReasonVal=0;
+        Object.entries(reasonTotals).forEach(([label,val])=>{ if(val>topReasonVal){ topReasonVal=val; topReason=label; } });
+        const jobTotals = jobsForDept(dept);
+        let topJob='—', topJobVal=0;
+        Object.entries(jobTotals).forEach(([label,val])=>{ if(val>topJobVal){ topJobVal=val; topJob=label; } });
+
+        const subTop = topSubDeptOverall(dept); // empty label if this dept has no sub-departments
+
+        html += `<div class="dr-card" style="--dc:${dc}" onclick="openDeptModal('${encodeURIComponent(dept)}')">
+            <i class="fa-solid ${document.documentElement.getAttribute('dir')==='rtl'?'fa-chevron-left':'fa-chevron-right'} dr-card-chevron"></i>
+            <div class="dr-card-head">
+                <div class="dr-card-name">${escapeHtml(dept)}</div>
+                <div class="dr-sev-badge" style="background:color-mix(in srgb, ${sev.color} 18%, transparent); color:${sev.color}">${T('sev_'+sev.key)}</div>
+            </div>
+            <div class="dr-card-val">${d.left}</div>
+            <div class="dr-card-val-label">${T('kpiLeft')}</div>
+            <div class="dr-card-rate"><span>${T('kpiTurnoverRate')}</span><b>${rate.toFixed(1)}%</b></div>
+            <div class="dr-card-mini">
+                <div>${T('topReason')}: <b>${topReasonVal>0 ? escapeHtml(topReason) : '—'}</b></div>
+                <div>${T('topJob')}: <b>${topJobVal>0 ? escapeHtml(topJob) : '—'}</b></div>
+                ${subTop.count>0 ? `<div>${T('topLine')}: <b>${escapeHtml(subTop.label)}</b></div>` : ''}
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+/* ══════════ DEPARTMENT DETAIL MODAL ══════════ */
+function openDeptModal(encodedDept){
+    const dept = decodeURIComponent(encodedDept);
+    const scoped = getScopedRows();
+    const rows = scoped.filter(r=>r.dept===dept);
+    const start = rows.reduce((a,r)=>a+r.start,0);
+    const end = rows.reduce((a,r)=>a+r.end,0);
+    const left = rows.reduce((a,r)=>a+r.left,0);
+    const joiners = rows.reduce((a,r)=>a+r.joiners,0);
+    const rate = turnoverRate(start,end,left);
+    const sev = severityFor(rate);
+
+    document.getElementById('dm_scope').textContent = scopeBadgeText();
+    document.getElementById('dm_title').textContent = dept;
+    document.getElementById('dm_l_left').textContent = T('kpiLeft');
+    document.getElementById('dm_l_joiners').textContent = T('kpiJoiners');
+    document.getElementById('dm_l_rate').textContent = T('kpiTurnoverRate');
+    document.getElementById('dm_v_left').textContent = left;
+    document.getElementById('dm_v_left').style.color = sev.color;
+    document.getElementById('dm_v_joiners').textContent = joiners;
+    document.getElementById('dm_v_rate').textContent = rate.toFixed(1)+'%';
+    document.getElementById('dm_v_rate').style.color = sev.color;
+    document.getElementById('dm_l_jobsTitle').textContent = T('jobsBreakdownTitle');
+    document.getElementById('dm_l_subdeptTitle').textContent = T('subdeptBreakdownTitle');
+    document.getElementById('dm_l_reasonsTitle').textContent = T('reasonsBreakdownTitle');
+
+    // Job-title breakdown (from the new leaver_jobs tab)
+    const jobTotals = jobsForDept(dept);
+    const jobEntries = Object.entries(jobTotals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+    const maxJob = jobEntries.length ? jobEntries[0][1] : 0;
+    document.getElementById('dm_jobsList').innerHTML = jobEntries.length ? jobEntries.map(([label,val],i)=>`
+        <div class="dr-modal-row">
+            <div class="dr-modal-row-name" title="${escapeHtml(label)}">${escapeHtml(label)}</div>
+            <div class="dr-modal-row-track"><div class="dr-modal-row-fill" style="width:${maxJob>0?(val/maxJob*100):0}%; background:${rankColors[i%rankColors.length]}"></div></div>
+            <div class="dr-modal-row-count">${val}</div>
+        </div>`).join('') : `<div class="dr-modal-empty">${T('noJobData')}</div>`;
+
+    // Sub-department / line breakdown (from the same tab — only meaningful for
+    // departments like Production that are split into lines; other departments
+    // simply show the "no data" message below, which is expected.)
+    const subTotals = subDeptsForDept(dept);
+    const subEntries = Object.entries(subTotals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+    const maxSub = subEntries.length ? subEntries[0][1] : 0;
+    document.getElementById('dm_subdeptList').innerHTML = subEntries.length ? subEntries.map(([label,val],i)=>`
+        <div class="dr-modal-row">
+            <div class="dr-modal-row-name" title="${escapeHtml(label)}">${escapeHtml(label)}</div>
+            <div class="dr-modal-row-track"><div class="dr-modal-row-fill" style="width:${maxSub>0?(val/maxSub*100):0}%; background:${rankColors[i%rankColors.length]}"></div></div>
+            <div class="dr-modal-row-count">${val}</div>
+        </div>`).join('') : `<div class="dr-modal-empty">${T('noSubDeptData')}</div>`;
+
+    // Reason breakdown (already available on the turnover tab per department)
+    const reasonTotals = reasonsForDept(scoped, dept);
+    const reasonEntries = Object.entries(reasonTotals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+    const maxReason = reasonEntries.length ? reasonEntries[0][1] : 0;
+    document.getElementById('dm_reasonsList').innerHTML = reasonEntries.length ? reasonEntries.map(([label,val],i)=>`
+        <div class="dr-modal-row">
+            <div class="dr-modal-row-name" title="${escapeHtml(label)}">${escapeHtml(label)}</div>
+            <div class="dr-modal-row-track"><div class="dr-modal-row-fill" style="width:${maxReason>0?(val/maxReason*100):0}%; background:${rankColors[i%rankColors.length]}"></div></div>
+            <div class="dr-modal-row-count">${val}</div>
+        </div>`).join('') : `<div class="dr-modal-empty">${T('noReasonData')}</div>`;
+
+    document.getElementById('deptModalOverlay').classList.add('show');
+    document.body.classList.add('modal-open');
+}
+
+function closeDeptModal(){
+    document.getElementById('deptModalOverlay').classList.remove('show');
+    document.body.classList.remove('modal-open');
+}
+
+/* ══════════ HOTSPOT SECTION ══════════ */
+function renderHotspot(scoped){
+    const byDept = aggregateByDept(scoped);
+    const depts = Object.keys(byDept);
+    const banner = document.getElementById('hotspotBanner');
+    const rankBox = document.getElementById('hotspotRank');
+
+    if(depts.length===0){
+        banner.innerHTML = `<div class="no-results"><i class="fa-solid fa-inbox"></i>${T('noResults')}</div>`;
+        rankBox.innerHTML = '';
+        return;
+    }
+
+    const sorted = depts
+        .map(d=>({ dept:d, left: byDept[d].left, rate: turnoverRate(byDept[d].start, byDept[d].end, byDept[d].left) }))
+        .sort((a,b)=>b.left-a.left);
+
+    const top = sorted[0];
+    if(top.left>0){
+        const subTop = topSubDeptOverall(top.dept);
+        const subSentence = subTop.count>0
+            ? ' ' + T('hotspotSubText').replace('{sub}', `<b>${escapeHtml(subTop.label)}</b>`).replace('{n}', subTop.count)
+            : '';
+        banner.innerHTML = `<div class="hotspot-banner">
+            <div class="hotspot-icon"><i class="fa-solid fa-fire"></i></div>
+            <div class="hotspot-text">${T('hotspotText')
+                .replace('{dept}', `<b>${escapeHtml(top.dept)}</b>`)
+                .replace('{n}', top.left)
+                .replace('{rate}', top.rate.toFixed(1))}${subSentence}</div>
+        </div>`;
+    } else {
+        banner.innerHTML = `<div class="no-results"><i class="fa-solid fa-circle-check"></i>${T('noResignationsScope')}</div>`;
+    }
+
+    const maxLeft = sorted[0].left || 1;
+    rankBox.innerHTML = sorted.map((d,i)=>`
+        <div class="reason-row">
+            <div class="reason-name">${i===0 ? '🔥 ' : ''}${escapeHtml(d.dept)}</div>
+            <div class="reason-bar-track"><div class="reason-bar-fill" style="width:${(d.left/maxLeft*100)}%; background:${i===0 ? 'var(--shortage)' : 'linear-gradient(90deg,#6c63ff,#f3524a)'}"></div></div>
+            <div class="reason-count">${d.left}</div>
+        </div>`).join('');
+}
+
 /* ══════════ THEME ══════════ */
 function toggleTheme(){
     const body = document.body, icon = document.getElementById('themeIcon');
@@ -575,45 +940,93 @@ function toggleTheme(){
 const I18N = {
 en: {
     loginSub:'Turnover Analysis Portal', signIn:'Sign In', invalid:'Invalid username or password', authOnly:'Authorized Access Only',
-    headerSub:'Turnover Dashboard', mainDashboard:'Main Dashboard', allFactory:'All Factory',
+    headerSub:'Turnover Dashboard', mainDashboard:'Main Dashboard', manpowerDashboard:'Manpower Dashboard', allFactory:'All Factory',
     labelDept:'Department', labelScope:'Show data for', orWord:'or a specific month:', pickMonth:'— Specific Month —',
     pAll:'All Time', p3:'Last 3 Months', p6:'Last 6 Months', p12:'Last 12 Months',
     reportSection:'Turnover Report',
     chartsHeader:'Overview Charts',
     chart1Period:'Turnover Rate Trend (%)', chart1Month:'Turnover Rate by Department',
+    chart1Hint:'How the turnover rate has moved over time.',
     chart2Period:'Joiners vs Left (by Month)', chart2Month:'Joiners vs Left (by Department)',
-    chart3:'Leaving Reasons Breakdown', chart4:'Turnover Rate by Department (Selected Period)', chart5:'Top Leaving Reasons (Ranked)',
+    chart2Hint:'People coming in compared to people leaving.',
+    chart3:'Leaving Reasons Breakdown', chart3Hint:'Why people are leaving, factory-wide for the current selection.',
+    chart4:'Turnover Rate by Department (Selected Period)', chart4Hint:'Which departments have the highest turnover rate right now.',
+    chart5:'Top Leaving Reasons (Ranked)', chart5Hint:'All leaving reasons ranked from most to least common.',
     noResults:'No data found for the current selection.',
     kpiTurnoverRate:'Turnover Rate', kpiJoiners:'Joiners', kpiLeft:'Left', kpiNetChange:'Net Change', kpiTopReason:'Top Reason',
-    kpiForScope:'for selection', kpiPeople:'people', kpiHeadcount:'headcount', kpiCases:'cases', kpiNoData:'no data yet'
+    kpiForScope:'for selection', kpiPeople:'people', kpiHeadcount:'headcount', kpiCases:'cases', kpiNoData:'no data yet',
+    deptSection:'Departments — Resignations', deptSectionHint:'Tap any department card to see which jobs and reasons are behind its resignations.',
+    sev_critical:'Critical', sev_high:'High', sev_moderate:'Moderate', sev_low:'Low',
+    topReason:'Top reason', topJob:'Top job', topLine:'Top line',
+    jobsBreakdownTitle:'Resignations by Job Title', reasonsBreakdownTitle:'Resignations by Reason',
+    subdeptBreakdownTitle:'Resignations by Sub-Department / Line',
+    noJobData:'No job-title data yet for this selection — add rows to the "leaver_jobs" sheet tab.',
+    noReasonData:'No reason data recorded for this selection.',
+    noSubDeptData:'This department has no sub-department / line data (or none recorded for this selection).',
+    hotspotSection:'Resignation Hotspot', hotspotRankTitle:'Departments Ranked by Resignations',
+    hotspotText:'{dept} has the most resignations for this selection — {n} people left, a {rate}% turnover rate. Worth a closer look first.',
+    hotspotSubText:'Within it, {sub} has the most resignations ({n} people).',
+    noResignationsScope:'No resignations recorded for this selection.'
 },
 tr: {
     loginSub:'Devir Analizi Portalı', signIn:'Giriş Yap', invalid:'Kullanıcı adı veya şifre hatalı', authOnly:'Yalnızca Yetkili Erişim',
-    headerSub:'Devir Paneli', mainDashboard:'Ana Panel', allFactory:'Tüm Fabrika',
+    headerSub:'Devir Paneli', mainDashboard:'Ana Panel', manpowerDashboard:'İşgücü Paneli', allFactory:'Tüm Fabrika',
     labelDept:'Departman', labelScope:'Verileri göster', orWord:'veya belirli bir ay:', pickMonth:'— Belirli Ay —',
     pAll:'Tüm Zamanlar', p3:'Son 3 Ay', p6:'Son 6 Ay', p12:'Son 12 Ay',
     reportSection:'Devir Raporu',
     chartsHeader:'Genel Bakış Grafikleri',
     chart1Period:'Devir Oranı Trendi (%)', chart1Month:'Departmana Göre Devir Oranı',
+    chart1Hint:'Devir oranı zaman içinde nasıl değişti.',
     chart2Period:'İşe Girenler vs Ayrılanlar (Aya Göre)', chart2Month:'İşe Girenler vs Ayrılanlar (Departmana Göre)',
-    chart3:'Ayrılma Sebepleri Dağılımı', chart4:'Departmana Göre Devir Oranı (Seçili Dönem)', chart5:'En Sık Ayrılma Sebepleri (Sıralı)',
+    chart2Hint:'İşe girenler ile ayrılanların karşılaştırması.',
+    chart3:'Ayrılma Sebepleri Dağılımı', chart3Hint:'İnsanların neden ayrıldığı, seçili aralık için tüm fabrika bazında.',
+    chart4:'Departmana Göre Devir Oranı (Seçili Dönem)', chart4Hint:'Şu anda en yüksek devir oranına sahip departmanlar.',
+    chart5:'En Sık Ayrılma Sebepleri (Sıralı)', chart5Hint:'Tüm ayrılma sebepleri en çoktan en aza sıralanmış.',
     noResults:'Seçili filtrelerle eşleşen veri bulunamadı.',
     kpiTurnoverRate:'Devir Oranı', kpiJoiners:'İşe Girenler', kpiLeft:'Ayrılanlar', kpiNetChange:'Net Değişim', kpiTopReason:'En Sık Sebep',
-    kpiForScope:'seçim için', kpiPeople:'kişi', kpiHeadcount:'personel', kpiCases:'vaka', kpiNoData:'veri yok'
+    kpiForScope:'seçim için', kpiPeople:'kişi', kpiHeadcount:'personel', kpiCases:'vaka', kpiNoData:'veri yok',
+    deptSection:'Departmanlar — İstifalar', deptSectionHint:'Hangi görevlerin ve sebeplerin istifaların arkasında olduğunu görmek için bir departman kartına dokunun.',
+    sev_critical:'Kritik', sev_high:'Yüksek', sev_moderate:'Orta', sev_low:'Düşük',
+    topReason:'En sık sebep', topJob:'En sık görev', topLine:'En sık hat',
+    jobsBreakdownTitle:'Göreve Göre İstifalar', reasonsBreakdownTitle:'Sebebe Göre İstifalar',
+    subdeptBreakdownTitle:'Alt Departmana / Hatta Göre İstifalar',
+    noJobData:'Bu seçim için henüz görev bazlı veri yok — "leaver_jobs" sekmesine satır ekleyin.',
+    noReasonData:'Bu seçim için sebep verisi kaydedilmemiş.',
+    noSubDeptData:'Bu departmanda alt departman / hat verisi yok (veya bu seçim için kaydedilmemiş).',
+    hotspotSection:'İstifa Sıcak Noktası', hotspotRankTitle:'İstifalara Göre Sıralanmış Departmanlar',
+    hotspotText:'Bu seçim için en çok istifa {dept} departmanında — {n} kişi ayrıldı, %{rate} devir oranı. Önce buraya bakmakta fayda var.',
+    hotspotSubText:'İçinde, en çok istifa {sub} hattında ({n} kişi).',
+    noResignationsScope:'Bu seçim için istifa kaydı yok.'
 },
 ar: {
     loginSub:'بوابة تحليل معدل الدوران', signIn:'تسجيل الدخول', invalid:'اسم المستخدم أو كلمة المرور غير صحيحة', authOnly:'دخول مصرح به فقط',
-    headerSub:'داشبورد معدل الدوران', mainDashboard:'الداشبورد الرئيسي', allFactory:'المصنع بالكامل',
+    headerSub:'داشبورد معدل الدوران', mainDashboard:'الداشبورد الرئيسي', manpowerDashboard:'داشبورد القوى العاملة', allFactory:'المصنع بالكامل',
     labelDept:'القسم', labelScope:'عرض البيانات لـ', orWord:'أو شهر محدد:', pickMonth:'— شهر محدد —',
     pAll:'كل الفترة', p3:'آخر 3 شهور', p6:'آخر 6 شهور', p12:'آخر 12 شهر',
     reportSection:'تقرير معدل الدوران',
     chartsHeader:'الرسوم البيانية العامة',
     chart1Period:'اتجاه معدل الدوران (%)', chart1Month:'معدل الدوران حسب القسم',
+    chart1Hint:'كيف تحرّك معدل الدوران عبر الوقت.',
     chart2Period:'الملتحقون مقابل التاركين (حسب الشهر)', chart2Month:'الملتحقون مقابل التاركين (حسب القسم)',
-    chart3:'توزيع أسباب ترك العمل', chart4:'معدل الدوران حسب القسم (الفترة المحددة)', chart5:'أكثر أسباب الترك تكرارًا (مرتبة)',
+    chart2Hint:'مقارنة عدد الملتحقين بعدد التاركين.',
+    chart3:'توزيع أسباب ترك العمل', chart3Hint:'أسباب ترك الموظفين للعمل، على مستوى المصنع بالكامل للفترة المختارة.',
+    chart4:'معدل الدوران حسب القسم (الفترة المحددة)', chart4Hint:'الأقسام صاحبة أعلى معدل دوران حاليًا.',
+    chart5:'أكثر أسباب الترك تكرارًا (مرتبة)', chart5Hint:'كل أسباب ترك العمل مرتبة من الأكثر للأقل تكرارًا.',
     noResults:'لا توجد بيانات مطابقة للاختيار الحالي.',
     kpiTurnoverRate:'معدل الدوران', kpiJoiners:'الملتحقون', kpiLeft:'التاركون', kpiNetChange:'صافي التغيير', kpiTopReason:'أكثر سبب',
-    kpiForScope:'للاختيار الحالي', kpiPeople:'موظف', kpiHeadcount:'عدد الموظفين', kpiCases:'حالة', kpiNoData:'لا توجد بيانات'
+    kpiForScope:'للاختيار الحالي', kpiPeople:'موظف', kpiHeadcount:'عدد الموظفين', kpiCases:'حالة', kpiNoData:'لا توجد بيانات',
+    deptSection:'الأقسام — الاستقالات', deptSectionHint:'اضغط على أي كارت قسم لمعرفة الوظائف والأسباب الأكثر تأثيرًا في استقالاته.',
+    sev_critical:'حرج', sev_high:'مرتفع', sev_moderate:'متوسط', sev_low:'منخفض',
+    topReason:'أكثر سبب', topJob:'أكثر وظيفة', topLine:'أكثر خط',
+    jobsBreakdownTitle:'الاستقالات حسب الوظيفة', reasonsBreakdownTitle:'الاستقالات حسب السبب',
+    subdeptBreakdownTitle:'الاستقالات حسب القسم الفرعي / الخط',
+    noJobData:'لا توجد بيانات وظائف لهذا الاختيار بعد — أضف صفوفًا في تبويب "leaver_jobs" بالشيت.',
+    noReasonData:'لا توجد بيانات أسباب مسجلة لهذا الاختيار.',
+    noSubDeptData:'هذا القسم ليس له خطوط / أقسام فرعية (أو لا توجد بيانات مسجلة لهذا الاختيار).',
+    hotspotSection:'أكثر الأقسام استقالة', hotspotRankTitle:'الأقسام مرتبة حسب عدد الاستقالات',
+    hotspotText:'قسم {dept} به أكبر عدد استقالات ضمن هذا الاختيار — استقال {n} موظف، بمعدل دوران {rate}%. يستحق المراجعة أولًا.',
+    hotspotSubText:'وجواه، أكتر خط فيه استقالات هو {sub} ({n} شخص).',
+    noResignationsScope:'لا توجد استقالات مسجلة لهذا الاختيار.'
 }
 };
 let currentLang = 'en';
@@ -636,6 +1049,7 @@ function applyTranslations(){
     document.getElementById('t_authOnly').textContent = T('authOnly');
     document.getElementById('t_headerSub').textContent = T('headerSub');
     document.getElementById('t_mainDashboard').textContent = T('mainDashboard');
+    document.getElementById('t_manpowerDashboard').textContent = T('manpowerDashboard');
     document.getElementById('t_allFactory').textContent = T('allFactory');
     document.getElementById('t_labelDept').textContent = T('labelDept');
     document.getElementById('t_labelScope').textContent = T('labelScope');
@@ -650,6 +1064,15 @@ function applyTranslations(){
     document.getElementById('t_chart3').textContent = T('chart3');
     document.getElementById('t_chart4').textContent = T('chart4');
     document.getElementById('t_chart5').textContent = T('chart5');
+    document.getElementById('t_chart1Hint').textContent = T('chart1Hint');
+    document.getElementById('t_chart2Hint').textContent = T('chart2Hint');
+    document.getElementById('t_chart3Hint').textContent = T('chart3Hint');
+    document.getElementById('t_chart4Hint').textContent = T('chart4Hint');
+    document.getElementById('t_chart5Hint').textContent = T('chart5Hint');
+    document.getElementById('t_deptSection').textContent = T('deptSection');
+    document.getElementById('t_deptSectionHint').textContent = T('deptSectionHint');
+    document.getElementById('t_hotspotSection').textContent = T('hotspotSection');
+    document.getElementById('t_hotspotRankTitle').textContent = T('hotspotRankTitle');
 }
 
 fetchData();
