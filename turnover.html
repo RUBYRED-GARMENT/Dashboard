@@ -160,6 +160,19 @@ html[dir="rtl"] .dr-card-chevron { right:auto; left:16px; }
 .dr-modal-row-fill { height:100%; border-radius:6px; }
 .dr-modal-row-count { min-width:34px; text-align:right; font-family:'Roboto Mono',monospace; font-size:11.5px; font-weight:700; color: var(--muted); }
 .dr-modal-empty { font-size:11.5px; color: var(--muted); font-style:italic; font-family:'DM Sans',sans-serif; padding:6px 0; }
+
+/* ══════════ COMPARISONS (NEW) ══════════ */
+.chips { display:flex; gap:6px; flex-wrap:wrap; max-height:130px; overflow-y:auto; margin:6px 0 14px; }
+.chip { border:1px solid var(--border); background: var(--surface2); color: var(--muted); padding:6px 12px; border-radius:16px; font-size:11.5px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; }
+.chip.active { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); color: var(--accent); }
+.cmp-controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
+.table-wrap { overflow-x:auto; }
+.cmp-table { width:100%; border-collapse:collapse; font-size:12.5px; font-family:'Inter',sans-serif; margin-top:6px; }
+.cmp-table th, .cmp-table td { padding:9px 10px; border-bottom:1px solid var(--border); text-align:center; white-space:nowrap; }
+.cmp-table th:first-child, .cmp-table td:first-child { text-align:start; font-weight:700; }
+.cmp-table td { font-family:'Roboto Mono',monospace; }
+.badge { font-size:10px; font-weight:800; padding:3px 9px; border-radius:12px; font-family:'Inter',sans-serif; }
+.cmp-comment { margin:12px 0; padding:12px 14px; border-radius:12px; background: var(--surface2); border:1px solid var(--border); font-size:12.5px; line-height:1.9; }
 </style>
 </head>
 <body class="login-locked">
@@ -261,6 +274,13 @@ html[dir="rtl"] .dr-card-chevron { right:auto; left:16px; }
         <div class="chart-card-hint" id="t_chart3Hint">Why people are leaving, factory-wide for the current selection.</div>
         <div class="chart-container"><canvas id="reasonDonut"></canvas></div>
     </div>
+    <!-- NEW: Resignations by Supervisor (next to Leaving Reasons) -->
+    <div class="chart-card">
+        <div class="chart-card-title"><i class="fa-solid fa-user-tie" style="color:#4594f5"></i><span data-i18n="chartSup">Resignations by Supervisor</span></div>
+        <div class="chart-card-hint" data-i18n="chartSupHint">Which supervisors had the most resignations for the current selection.</div>
+        <div class="no-results" id="supEmpty" style="display:none"></div>
+        <div class="chart-container" id="supChartBox"><canvas id="supChart"></canvas></div>
+    </div>
     <div class="chart-card" id="deptCompareCard" style="grid-column:1/-1">
         <div class="chart-card-title"><i class="fa-solid fa-building" style="color:#ffb020"></i><span id="t_chart4">Turnover Rate by Department</span></div>
         <div class="chart-card-hint" id="t_chart4Hint">Which departments have the highest turnover rate right now.</div>
@@ -284,6 +304,28 @@ html[dir="rtl"] .dr-card-chevron { right:auto; left:16px; }
 <div class="chart-card">
     <div class="chart-card-title"><i class="fa-solid fa-arrow-down-wide-short" style="color:#f3524a"></i><span id="t_hotspotRankTitle">Departments Ranked by Resignations</span></div>
     <div class="reason-rank" id="hotspotRank"></div>
+</div>
+
+<!-- ══════════ COMPARISONS (NEW) ══════════ -->
+<div class="sec-title"><i class="fa-solid fa-code-compare"></i><span data-i18n="cmpSection">Comparisons</span></div>
+<div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-card-title"><i class="fa-solid fa-calendar-days" style="color:#6c63ff"></i><span data-i18n="cmpMonthsTitle">Compare Months</span></div>
+    <div class="chart-card-hint" data-i18n="cmpMonthsHint">Pick two or more months. The department filter applies.</div>
+    <div class="chips" id="cmpMonthChips"></div>
+    <div id="cmpMonthOut"></div>
+    <div class="chart-container" id="cmpMonthChartWrap" style="margin-top:14px"><canvas id="cmpMonthChart"></canvas></div>
+</div>
+<div class="chart-card">
+    <div class="chart-card-title"><i class="fa-solid fa-user-tie" style="color:#f065b8"></i><span data-i18n="supCmpTitle">Supervisor Comparison</span></div>
+    <div class="chart-card-hint" data-i18n="supCmpHint">Choose a period, then pick specific supervisors or leave it on all. The department filter applies.</div>
+    <div class="cmp-controls">
+        <span class="filter-label" data-i18n="supPeriod">Period</span>
+        <select class="pill-select" id="supPeriodSel" onchange="supPeriod=this.value;renderSupCompare()"></select>
+        <button class="period-toggle" onclick="supSel.clear();renderSupCompare()" data-i18n="supAllBtn">All supervisors</button>
+    </div>
+    <div class="chips" id="supChips"></div>
+    <div id="supCmpOut"></div>
+    <div class="chart-container" id="supCmpBox"><canvas id="supCmpChart"></canvas></div>
 </div>
 
 <!-- ══════════ DEPARTMENT DETAIL MODAL ══════════ -->
@@ -347,40 +389,13 @@ window.addEventListener('DOMContentLoaded', ()=>{ document.getElementById('login
 document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeDeptModal(); });
 
 /* ══════════ GOOGLE SHEET CONFIG ══════════
-   TAB 1 — "turnover"  (unchanged, already existed)
-   Row 1 = header. Columns:
-   A = Month              (format YYYY-MM, e.g. 2026-01)
-   B = Department          (must match your department names)
-   C = Headcount Start
-   D = Joiners
-   E = Left                (total leavers this month for this department)
-   F = Headcount End
-   G onward = ANY number of "reason" columns (header text = reason name).
-   Left should equal the sum of all reason columns in that row.
-   This tab still powers the KPI cards, trend, joiners/left and reason charts.
+   TAB 1 — "turnover"
+   A = Month (YYYY-MM) | B = Department | C = Headcount Start | D = Joiners
+   E = Left | F = Headcount End | G onward = reason columns (header = reason name)
 
-   TAB 2 — "leaver_jobs"  (NEW — required for the job-title / line breakdown)
-   Row 1 = header. Columns:
-   A = Month           (same YYYY-MM format, must match the turnover tab)
-   B = Department       (must match department names used in "turnover",
-                          e.g. Production, Cutting, Warehouse...)
-   C = Sub Department     (OPTIONAL — only for departments that are split into
-                            lines/units, e.g. Line 1, Line 2 ... Line 24 inside
-                            Production. Leave this cell blank for any
-                            department that doesn't have that extra layer —
-                            its "by line" section will just show no data,
-                            which is expected and fine.)
-   D = Job Title         (e.g. Machine Singer, Ironing, Packing...)
-   E = Count              (OPTIONAL — leave blank and add one row per person
-                            who left, each row = 1. Or fill it in on one row
-                            per job title with a number, if you prefer
-                            already-totaled numbers instead of one row per
-                            person.)
-   One row per Month + Department (+ Sub Department) + Job Title combination.
-   This is what powers "Resignations by Job Title" AND "Resignations by
-   Sub-Department / Line" inside each department's detail popup — neither
-   exists anywhere else in the old sheet, so this tab needs to be added for
-   that part of the dashboard to show real data.
+   TAB 2 — "leaver_jobs"
+   A = Month (YYYY-MM) | B = Department | C = Sub Department / SUPERVISOR (optional)
+   D = Job Title | E = Count (optional, blank = 1 per row)
 ═══════════════════════════════════════════════ */
 const SHEET_ID = '1j7IFj_tylNeqwui57JU7coeB6XXj0Lt7d4yBHaqmutE';
 const API_KEY  = 'AIzaSyB_dCi6NlG_jUCUY955eynfN0gF7KobQ4A';
@@ -390,17 +405,14 @@ const RANGE_JOBS = 'leaver_jobs!A1:E2000';
 const deptColors = ['#6c63ff','#0fd493','#f3524a','#4594f5','#ff8c40','#f065b8','#a78bfa','#00d2ff','#fbbf24','#f87171'];
 const rankColors = ['#f3524a','#ffb020','#6c63ff','#0fd493','#4594f5','#ff8c40','#f065b8','#a78bfa','#00d2ff','#fbbf24'];
 
-let reasonLabels = [];   // dynamic list of reason column names, in sheet order
-let rawRows = [];        // {month, dept, start, joiners, left, end, reasons:{name:val}}
-let rawLeaverJobs = [];  // {month, dept, subdept, job, count}   -- from the new "leaver_jobs" tab
+let reasonLabels = [];
+let rawRows = [];
+let rawLeaverJobs = [];
 let charts = {};
 
-/* ── ONE simple scope: either a period (all/3/6/12) OR one specific month.
-      Everything on the page (KPI cards + every chart + every card) reads
-      from this same scope, so there's only ever one source of truth. ── */
 let scopeType = 'period';   // 'period' | 'month'
 let scopePeriod = 'all';    // 'all' | '3' | '6' | '12'
-let scopeMonth = '';        // e.g. '2026-01'
+let scopeMonth = '';
 
 /* ══════════ FETCH & PARSE ══════════ */
 async function fetchData(){
@@ -411,8 +423,10 @@ async function fetchData(){
         ]);
         const data1 = await res1.json();
         const data2 = await res2.json().catch(()=>({}));
+        if(data1.error) console.error('Sheet error:', data1.error);
         if(data1.values) parseRows(data1.values);
         if(data2 && data2.values) parseLeaverJobs(data2.values); else rawLeaverJobs = [];
+        buildCompareControls();
         renderDashboard();
     }catch(e){ console.error('Error loading sheet data', e); }
 }
@@ -444,12 +458,9 @@ function parseLeaverJobs(rows){
     body.forEach(r=>{
         const month   = (r[0]||'').trim();
         const dept    = (r[1]||'').trim();
-        const subdept = (r[2]||'').trim();   // optional — e.g. "Line 5", blank for depts without lines
+        const subdept = (r[2]||'').trim();   // supervisor
         const job     = (r[3]||'').trim();
         if(!month || !dept || !job) return;
-        // Count is optional: leave it blank if you're entering one row per person who left
-        // (each row then simply counts as 1), or fill it in if one row represents several
-        // people with the same job title.
         const rawCount = (r[4]||'').trim();
         const count = rawCount==='' ? 1 : (parseFloat(rawCount) || 1);
         rawLeaverJobs.push({ month, dept, subdept, job, count });
@@ -474,7 +485,6 @@ function populateMonthFilter(){
     else sel.value = '';
 }
 
-/* Selecting a month always switches the whole page into "one month" mode */
 function selectMonth(val){
     scopeMonth = val;
     if(val){
@@ -484,14 +494,13 @@ function selectMonth(val){
     } else {
         scopeType = 'period';
         document.getElementById('monthFilter').classList.remove('scope-active');
-        document.querySelectorAll('.period-toggle').forEach(el=>{
+        document.querySelectorAll('#periodToggleGroup .period-toggle').forEach(el=>{
             el.classList.toggle('active', el.getAttribute('data-p')===scopePeriod);
         });
     }
     renderDashboard();
 }
 
-/* Clicking a period button always switches the whole page into "period" mode */
 function setPeriodFilter(p){
     scopePeriod = p;
     scopeType = 'period';
@@ -499,7 +508,7 @@ function setPeriodFilter(p){
     const monthSel = document.getElementById('monthFilter');
     monthSel.value = '';
     monthSel.classList.remove('scope-active');
-    document.querySelectorAll('.period-toggle').forEach(el=>{
+    document.querySelectorAll('#periodToggleGroup .period-toggle').forEach(el=>{
         el.classList.toggle('active', el.getAttribute('data-p')===p);
     });
     renderDashboard();
@@ -509,23 +518,21 @@ function escapeHtml(str){
     return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-/* THE single source of truth: every card and every chart is built from this array */
+/* Single source of truth. FIX: "last N months" now uses ALL months in the sheet
+   (not only the months of the selected department). */
 function getScopedRows(){
     const deptSel = document.getElementById('deptFilter').value;
     let rows = deptSel==='all' ? rawRows : rawRows.filter(r=>r.dept===deptSel);
     if(scopeType==='month'){
         rows = rows.filter(r=>r.month===scopeMonth);
     } else if(scopePeriod!=='all'){
-        const months = [...new Set(rows.map(r=>r.month))].sort();
+        const months = [...new Set(rawRows.map(r=>r.month))].sort();
         const keep = new Set(months.slice(-parseInt(scopePeriod)));
         rows = rows.filter(r=>keep.has(r.month));
     }
     return rows;
 }
 
-/* Same month-window logic, but applied globally (used for the leaver_jobs tab,
-   which isn't affected by the department dropdown since we filter by
-   department separately per-card). */
 function monthAllowedGlobal(month){
     const allMonths = [...new Set(rawRows.map(r=>r.month))].sort();
     if(scopeType==='month') return month===scopeMonth;
@@ -555,11 +562,28 @@ function renderDashboard(){
     renderCharts(scoped);
     renderDeptResignCards(scoped);
     renderHotspot(scoped);
+    renderSupChart();
+    renderCompare();
 }
 
+/* Single month helper (kept for per-month trend) */
 function turnoverRate(start,end,left){
     const avg = (start+end)/2;
     return avg>0 ? (left/avg)*100 : 0;
+}
+
+/* FIX: period-aware stats.
+   rate        = total leavers / AVERAGE headcount over the period (avg of monthly averages)
+   monthlyRate = rate / number of months (used for severity so 1/4/8 thresholds stay "per month")
+   net         = headcount at end of last month - headcount at start of first month */
+function calcStats(rows){
+    const m = aggregateByMonth(rows), ms = Object.keys(m).sort(), n = ms.length;
+    let left=0, joiners=0, avgSum=0;
+    ms.forEach(k=>{ left+=m[k].left; joiners+=m[k].joiners; avgSum+=(m[k].start+m[k].end)/2; });
+    const avgHC = n ? avgSum/n : 0;
+    const rate = avgHC>0 ? left/avgHC*100 : 0;
+    return { n, left, joiners, avgHC, rate, monthlyRate: n ? rate/n : 0,
+             net: n ? m[ms[n-1]].end - m[ms[0]].start : 0, end: n ? m[ms[n-1]].end : 0 };
 }
 
 function aggregateByMonth(rows){
@@ -574,7 +598,6 @@ function aggregateByMonth(rows){
     return map;
 }
 
-/* Works for a single month OR many months — just sums whatever rows are given */
 function aggregateByDept(rows){
     const map = {};
     rows.forEach(r=>{
@@ -587,9 +610,6 @@ function aggregateByDept(rows){
     return map;
 }
 
-/* Reason totals for one specific department, from the same scoped rows
-   used everywhere else on the page (no need for the new tab — reasons
-   already live on the "turnover" tab per department). */
 function reasonsForDept(scopedRows, dept){
     const rows = scopedRows.filter(r=>r.dept===dept);
     const totals = {};
@@ -597,7 +617,6 @@ function reasonsForDept(scopedRows, dept){
     return totals;
 }
 
-/* Job-title totals for one specific department, from the new "leaver_jobs" tab */
 function jobsForDept(dept){
     const rows = rawLeaverJobs.filter(r=>r.dept===dept && monthAllowedGlobal(r.month));
     const totals = {};
@@ -605,9 +624,6 @@ function jobsForDept(dept){
     return totals;
 }
 
-/* Sub-department / line totals for one specific department (e.g. Line 1..24
-   inside Production). Departments that don't use sub-departments simply
-   return an empty object — that's expected, not an error. */
 function subDeptsForDept(dept){
     const rows = rawLeaverJobs.filter(r=>r.dept===dept && r.subdept && monthAllowedGlobal(r.month));
     const totals = {};
@@ -615,9 +631,6 @@ function subDeptsForDept(dept){
     return totals;
 }
 
-/* Highest sub-department across ALL departments for the current scope —
-   used to enrich the hotspot banner (e.g. "...and within it, Line 5 has
-   the most resignations"). */
 function topSubDeptOverall(dept){
     const totals = subDeptsForDept(dept);
     let top='', val=0;
@@ -625,6 +638,7 @@ function topSubDeptOverall(dept){
     return { label: top, count: val };
 }
 
+/* severity is based on the AVERAGE MONTHLY rate */
 function severityFor(rate){
     if(rate>=8)  return { key:'critical', color:'var(--shortage)' };
     if(rate>=4)  return { key:'high',     color:'var(--surplus)'  };
@@ -632,18 +646,17 @@ function severityFor(rate){
     return         { key:'low',      color:'var(--fine)'     };
 }
 
-/* ══════════ KPI CARDS (always reflect current scope) ══════════ */
+/* ══════════ KPI CARDS ══════════ */
 function renderKPIs(scoped){
     if(scoped.length===0){
         document.getElementById('kpiContainer').innerHTML = `<div class="no-results" style="grid-column:1/-1"><i class="fa-solid fa-inbox"></i>${T('noResults')}</div>`;
         return;
     }
-    const totalStart = scoped.reduce((a,r)=>a+r.start,0);
-    const totalEnd = scoped.reduce((a,r)=>a+r.end,0);
-    const totalJoiners = scoped.reduce((a,r)=>a+r.joiners,0);
-    const totalLeft = scoped.reduce((a,r)=>a+r.left,0);
-    const rate = turnoverRate(totalStart,totalEnd,totalLeft);
-    const net = totalEnd - totalStart;
+    const st = calcStats(scoped);
+    const totalJoiners = st.joiners;
+    const totalLeft = st.left;
+    const rate = st.rate;
+    const net = st.net;
 
     const reasonTotals = {};
     reasonLabels.forEach(label=>{ reasonTotals[label] = scoped.reduce((a,r)=>a+(r.reasons[label]||0),0); });
@@ -665,9 +678,7 @@ function renderKPIs(scoped){
         </div>`).join('');
 }
 
-/* ══════════ CHARTS (always reflect current scope) ══════════
-   Period mode  -> trend across months, department comparison across the period
-   Month mode   -> everything broken down by department for that one month     */
+/* ══════════ CHARTS ══════════ */
 function renderCharts(scoped){
     const textColor = getComputedStyle(document.body).getPropertyValue('--muted').trim();
     const gridColor = getComputedStyle(document.body).getPropertyValue('--grid').trim();
@@ -680,7 +691,7 @@ function renderCharts(scoped){
     const byDept = aggregateByDept(scoped);
     const depts = Object.keys(byDept);
 
-    // ── Chart 1: Trend (period mode) OR Turnover Rate by Department (month mode)
+    // Chart 1
     if(charts.trend) charts.trend.destroy();
     document.getElementById('t_chart1').textContent = isMonthMode ? (T('chart1Month')+' — '+scopeMonth) : T('chart1Period');
     if(!isMonthMode){
@@ -694,7 +705,7 @@ function renderCharts(scoped){
                          x:{ grid:{display:false}, ticks:{color:textColor, font:{family:'Inter', weight:'600', size:9}} } } }
         });
     } else {
-        const rateData = depts.map(d=>turnoverRate(byDept[d].start, byDept[d].end, byDept[d].left));
+        const rateData = depts.map(d=>calcStats(scoped.filter(r=>r.dept===d)).rate);
         charts.trend = new Chart(document.getElementById('trendChart').getContext('2d'), {
             type:'bar', plugins:[ChartDataLabels],
             data:{ labels: depts, datasets:[{ data: rateData, backgroundColor: depts.map((_,i)=>deptColors[i%deptColors.length]), borderRadius:5 }] },
@@ -705,7 +716,7 @@ function renderCharts(scoped){
         });
     }
 
-    // ── Chart 2: Joiners vs Left — by month (period mode) OR by department (month mode)
+    // Chart 2
     if(charts.flow) charts.flow.destroy();
     document.getElementById('t_chart2').textContent = isMonthMode ? T('chart2Month') : T('chart2Period');
     const flowLabels = isMonthMode ? depts : months;
@@ -723,7 +734,7 @@ function renderCharts(scoped){
                      x:{ grid:{display:false}, ticks:{color:textColor, font:{family:'Inter', weight:'600', size:9}} } } }
     });
 
-    // ── Chart 3: Reason donut — always just the scoped rows, whatever the mode
+    // Chart 3
     const reasonTotals = {};
     reasonLabels.forEach(label=>{ reasonTotals[label] = scoped.reduce((a,r)=>a+(r.reasons[label]||0),0); });
     const reasonEntries = Object.entries(reasonTotals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
@@ -732,19 +743,18 @@ function renderCharts(scoped){
     if(charts.reasonDonut) charts.reasonDonut.destroy();
     charts.reasonDonut = new Chart(document.getElementById('reasonDonut').getContext('2d'), {
         type:'doughnut', plugins:[ChartDataLabels],
-        data:{ labels: reasonEntries.map(e=>e[0]), datasets:[{ data: reasonEntries.map(e=>e[1]), backgroundColor: reasonEntries.map((_,i)=>donutColors[i%donutColors.length]), borderWidth:2, borderColor:'var(--surface)' }] },
+        data:{ labels: reasonEntries.map(e=>e[0]), datasets:[{ data: reasonEntries.map(e=>e[1]), backgroundColor: reasonEntries.map((_,i)=>donutColors[i%donutColors.length]), borderWidth:2, borderColor:getComputedStyle(document.body).getPropertyValue('--surface').trim() }] },
         options:{ responsive:true, maintainAspectRatio:false, cutout:'58%',
             plugins:{ legend:{ position:'bottom', labels:{ color:textColor, font:{family:'Inter', size:10}, usePointStyle:true } },
                 datalabels:{ color:'#fff', font:{family:'Roboto Mono', weight:'700', size:11}, formatter:(v,ctx)=>{ const total=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return total>0 ? ((v/total)*100).toFixed(0)+'%' : ''; }, display:(ctx)=>ctx.dataset.data[ctx.dataIndex]>0 } } }
     });
 
-    // ── Chart 4: Department comparison — only adds value in period mode with "All Factory".
-    //    (In month mode Chart 1 already shows the per-department breakdown, so it's hidden then.)
+    // Chart 4
     const compareCard = document.getElementById('deptCompareCard');
     if(!isMonthMode && deptSel==='all'){
         compareCard.style.display = '';
         const cDepts = Object.keys(byDept);
-        const cRates = cDepts.map(d=>turnoverRate(byDept[d].start, byDept[d].end, byDept[d].left));
+        const cRates = cDepts.map(d=>calcStats(scoped.filter(r=>r.dept===d)).rate);
         if(charts.deptCompare) charts.deptCompare.destroy();
         charts.deptCompare = new Chart(document.getElementById('deptCompareChart').getContext('2d'), {
             type:'bar', plugins:[ChartDataLabels],
@@ -758,7 +768,7 @@ function renderCharts(scoped){
         compareCard.style.display = 'none';
     }
 
-    // ── Chart 5: Reason ranking bars — always just the scoped rows
+    // Chart 5
     const maxCount = reasonEntries.length ? reasonEntries[0][1] : 0;
     const rankHtml = reasonEntries.length ? reasonEntries.map(([label,val])=>`
         <div class="reason-row">
@@ -781,11 +791,10 @@ function renderDeptResignCards(scoped){
     let html = '';
     depts.forEach((dept, idx)=>{
         const d = byDept[dept];
-        const rate = turnoverRate(d.start, d.end, d.left);
-        const sev = severityFor(rate);
+        const ds = calcStats(scoped.filter(r=>r.dept===dept)); const rate = ds.rate;
+        const sev = severityFor(ds.monthlyRate);
         const dc = deptColors[idx % deptColors.length];
 
-        // quick-glance extras shown right on the card, no click needed
         const reasonTotals = reasonsForDept(scoped, dept);
         let topReason='—', topReasonVal=0;
         Object.entries(reasonTotals).forEach(([label,val])=>{ if(val>topReasonVal){ topReasonVal=val; topReason=label; } });
@@ -793,7 +802,7 @@ function renderDeptResignCards(scoped){
         let topJob='—', topJobVal=0;
         Object.entries(jobTotals).forEach(([label,val])=>{ if(val>topJobVal){ topJobVal=val; topJob=label; } });
 
-        const subTop = topSubDeptOverall(dept); // empty label if this dept has no sub-departments
+        const subTop = topSubDeptOverall(dept);
 
         html += `<div class="dr-card" style="--dc:${dc}" onclick="openDeptModal('${encodeURIComponent(dept)}')">
             <i class="fa-solid ${document.documentElement.getAttribute('dir')==='rtl'?'fa-chevron-left':'fa-chevron-right'} dr-card-chevron"></i>
@@ -819,12 +828,10 @@ function openDeptModal(encodedDept){
     const dept = decodeURIComponent(encodedDept);
     const scoped = getScopedRows();
     const rows = scoped.filter(r=>r.dept===dept);
-    const start = rows.reduce((a,r)=>a+r.start,0);
-    const end = rows.reduce((a,r)=>a+r.end,0);
-    const left = rows.reduce((a,r)=>a+r.left,0);
-    const joiners = rows.reduce((a,r)=>a+r.joiners,0);
-    const rate = turnoverRate(start,end,left);
-    const sev = severityFor(rate);
+    const ds = calcStats(rows); const rate = ds.rate;
+    const left = ds.left;
+    const joiners = ds.joiners;
+    const sev = severityFor(ds.monthlyRate);
 
     document.getElementById('dm_scope').textContent = scopeBadgeText();
     document.getElementById('dm_title').textContent = dept;
@@ -840,7 +847,6 @@ function openDeptModal(encodedDept){
     document.getElementById('dm_l_subdeptTitle').textContent = T('subdeptBreakdownTitle');
     document.getElementById('dm_l_reasonsTitle').textContent = T('reasonsBreakdownTitle');
 
-    // Job-title breakdown (from the new leaver_jobs tab)
     const jobTotals = jobsForDept(dept);
     const jobEntries = Object.entries(jobTotals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
     const maxJob = jobEntries.length ? jobEntries[0][1] : 0;
@@ -851,9 +857,6 @@ function openDeptModal(encodedDept){
             <div class="dr-modal-row-count">${val}</div>
         </div>`).join('') : `<div class="dr-modal-empty">${T('noJobData')}</div>`;
 
-    // Sub-department / line breakdown (from the same tab — only meaningful for
-    // departments like Production that are split into lines; other departments
-    // simply show the "no data" message below, which is expected.)
     const subTotals = subDeptsForDept(dept);
     const subEntries = Object.entries(subTotals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
     const maxSub = subEntries.length ? subEntries[0][1] : 0;
@@ -864,7 +867,6 @@ function openDeptModal(encodedDept){
             <div class="dr-modal-row-count">${val}</div>
         </div>`).join('') : `<div class="dr-modal-empty">${T('noSubDeptData')}</div>`;
 
-    // Reason breakdown (already available on the turnover tab per department)
     const reasonTotals = reasonsForDept(scoped, dept);
     const reasonEntries = Object.entries(reasonTotals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
     const maxReason = reasonEntries.length ? reasonEntries[0][1] : 0;
@@ -898,7 +900,7 @@ function renderHotspot(scoped){
     }
 
     const sorted = depts
-        .map(d=>({ dept:d, left: byDept[d].left, rate: turnoverRate(byDept[d].start, byDept[d].end, byDept[d].left) }))
+        .map(d=>({ dept:d, left: byDept[d].left, rate: calcStats(scoped.filter(r=>r.dept===d)).rate }))
         .sort((a,b)=>b.left-a.left);
 
     const top = sorted[0];
@@ -925,6 +927,139 @@ function renderHotspot(scoped){
             <div class="reason-bar-track"><div class="reason-bar-fill" style="width:${(d.left/maxLeft*100)}%; background:${i===0 ? 'var(--shortage)' : 'linear-gradient(90deg,#6c63ff,#f3524a)'}"></div></div>
             <div class="reason-count">${d.left}</div>
         </div>`).join('');
+}
+
+/* ══════════ NEW: HELPERS ══════════ */
+function fmtTpl(key, o){ let s=T(key); Object.entries(o).forEach(([k,v])=>{ s=s.split('{'+k+'}').join(v); }); return s; }
+function themeColors(){ const cs=getComputedStyle(document.body); return { text:cs.getPropertyValue('--muted').trim(), grid:cs.getPropertyValue('--grid').trim(), full:cs.getPropertyValue('--text').trim() }; }
+function quarterOf(m){ const p=m.split('-'); return p[0]+'-Q'+Math.ceil(parseInt(p[1],10)/3); }
+function supRows(monthTest){
+    const d = document.getElementById('deptFilter').value;
+    return rawLeaverJobs.filter(r=>r.subdept && (d==='all'||r.dept===d) && monthTest(r.month));
+}
+function sumBy(rows, key){ const t={}; rows.forEach(r=>{ t[r[key]]=(t[r[key]]||0)+r.count; }); return t; }
+
+/* ══════════ NEW: RESIGNATIONS BY SUPERVISOR (department + period filters apply) ══════════ */
+function renderSupChart(){
+    const tot = sumBy(supRows(monthAllowedGlobal), 'subdept');
+    const e = Object.entries(tot).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+    const box = document.getElementById('supChartBox'), empty = document.getElementById('supEmpty');
+    if(charts.sup) charts.sup.destroy();
+    empty.style.display = e.length ? 'none' : ''; box.style.display = e.length ? '' : 'none';
+    empty.innerHTML = `<i class="fa-solid fa-inbox"></i>${T('supEmptyMsg')}`;
+    if(!e.length) return;
+    box.style.height = Math.max(300, e.length*28+40)+'px';
+    const c = themeColors();
+    charts.sup = new Chart(document.getElementById('supChart').getContext('2d'), {
+        type:'bar', plugins:[ChartDataLabels],
+        data:{ labels:e.map(x=>x[0]), datasets:[{ data:e.map(x=>x[1]), backgroundColor:e.map((_,i)=>rankColors[i%rankColors.length]), borderRadius:5 }] },
+        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{display:false}, datalabels:{ anchor:'end', align:'right', color:c.full, font:{family:'Roboto Mono', weight:'700', size:10} } },
+            scales:{ x:{ beginAtZero:true, grace:'10%', grid:{color:c.grid}, ticks:{color:c.text, precision:0} }, y:{ grid:{display:false}, ticks:{color:c.text, font:{family:'Inter', size:10}} } } }
+    });
+}
+
+/* ══════════ NEW: COMPARISONS ══════════ */
+let cmpMonths = new Set(), supSel = new Set(), supPeriod = 'all';
+function toggleCmpMonth(m){ cmpMonths.has(m) ? cmpMonths.delete(m) : cmpMonths.add(m); buildCompareControls(); renderMonthCompare(); }
+function toggleSup(s){ supSel.has(s) ? supSel.delete(s) : supSel.add(s); renderSupCompare(); }
+
+function buildCompareControls(){
+    const months = [...new Set(rawRows.map(r=>r.month))].sort();
+    cmpMonths = new Set([...cmpMonths].filter(m=>months.includes(m)));
+    document.getElementById('cmpMonthChips').innerHTML = months.map(m=>
+        `<button class="chip ${cmpMonths.has(m)?'active':''}" data-v="${escapeHtml(m)}" onclick="toggleCmpMonth(this.dataset.v)">${escapeHtml(m)}</button>`).join('');
+    const jm = [...new Set(rawLeaverJobs.map(r=>r.month))].sort(), qs = [...new Set(jm.map(quarterOf))];
+    if(supPeriod!=='all' && !qs.includes(supPeriod) && !jm.includes(supPeriod)) supPeriod='all';
+    const sel = document.getElementById('supPeriodSel');
+    sel.innerHTML = `<option value="all">${T('pAll')}</option><optgroup label="${T('optQuarters')}">${qs.map(q=>`<option value="${q}">${q}</option>`).join('')}</optgroup><optgroup label="${T('optMonths')}">${jm.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('')}</optgroup>`;
+    sel.value = supPeriod;
+}
+function renderCompare(){ renderMonthCompare(); renderSupCompare(); }
+
+/* Months comparison. Improvement logic:
+   Left / Turnover rate -> lower = improvement.  Joiners / Headcount -> higher = improvement. */
+function renderMonthCompare(){
+    const d = document.getElementById('deptFilter').value;
+    const rows = d==='all' ? rawRows : rawRows.filter(r=>r.dept===d);
+    const months = [...cmpMonths].sort(), out = document.getElementById('cmpMonthOut'), wrap = document.getElementById('cmpMonthChartWrap');
+    if(charts.cmpM) charts.cmpM.destroy();
+    if(months.length<2){ out.innerHTML = `<div class="no-results"><i class="fa-solid fa-code-compare"></i>${T('cmpNeedTwo')}</div>`; wrap.style.display='none'; return; }
+    wrap.style.display = '';
+    const st = months.map(m=>calcStats(rows.filter(r=>r.month===m)));
+    const int = v=>v.toFixed(0);
+    const metrics = [
+        { label:T('kpiLeft'), get:s=>s.left, better:-1, fmt:int, dfmt:int },
+        { label:T('kpiJoiners'), get:s=>s.joiners, better:1, fmt:int, dfmt:int },
+        { label:T('kpiTurnoverRate'), get:s=>s.rate, better:-1, fmt:v=>v.toFixed(1)+'%', dfmt:v=>v.toFixed(1)+' pp' },
+        { label:T('kpiEnd'), get:s=>s.end, better:1, fmt:int, dfmt:int }
+    ];
+    let good=0, bad=0, same=0, lines=[], body='';
+    metrics.forEach(mt=>{
+        const a = mt.get(st[0]), b = mt.get(st[st.length-1]), diff = b-a;
+        const eq = Math.abs(diff) < 0.05;
+        const s = eq ? 'same' : (diff*mt.better>0 ? 'good' : 'bad');
+        if(s==='good') good++; else if(s==='bad') bad++; else same++;
+        const col = s==='good' ? 'var(--fine)' : s==='bad' ? 'var(--shortage)' : 'var(--surplus)';
+        const txt = s==='good' ? T('stBetter') : s==='bad' ? T('stWorse') : T('stSame');
+        const pct = a>0 ? ' / '+(diff>=0?'+':'')+(diff/a*100).toFixed(0)+'%' : '';
+        const dTxt = (diff>=0?'+':'')+mt.dfmt(diff)+pct;
+        lines.push(fmtTpl('cmpLine',{m:mt.label,a:mt.fmt(a),b:mt.fmt(b),d:dTxt,s:txt}));
+        body += `<tr><td>${mt.label}</td>${st.map(x=>`<td>${mt.fmt(mt.get(x))}</td>`).join('')}<td style="color:${col}">${dTxt}</td><td><span class="badge" style="background:color-mix(in srgb, ${col} 18%, transparent);color:${col}">${txt}</span></td></tr>`;
+    });
+    const vKey = good>bad ? 'vGood' : bad>good ? 'vBad' : 'vMixed';
+    const vCol = good>bad ? 'var(--fine)' : bad>good ? 'var(--shortage)' : 'var(--surplus)';
+    out.innerHTML = `<div class="table-wrap"><table class="cmp-table"><thead><tr><th>${T('cmpMetric')}</th>${months.map(m=>`<th>${escapeHtml(m)}</th>`).join('')}<th>${T('cmpChange')}</th><th>${T('cmpStatus')}</th></tr></thead><tbody>${body}</tbody></table></div>
+        <div class="cmp-comment" style="border-inline-start:4px solid ${vCol}"><b style="color:${vCol}">${T(vKey)}</b> ${fmtTpl('vCount',{i:good,w:bad,s:same,a:escapeHtml(months[0]),b:escapeHtml(months[months.length-1])})}<br>${lines.map(escapeHtml).join('<br>')}</div>`;
+    const c = themeColors();
+    charts.cmpM = new Chart(document.getElementById('cmpMonthChart').getContext('2d'), {
+        type:'bar', plugins:[ChartDataLabels],
+        data:{ labels:months, datasets:[
+            { label:T('kpiJoiners'), data:st.map(s=>s.joiners), backgroundColor:'#0fd493', borderRadius:5, yAxisID:'y' },
+            { label:T('kpiLeft'), data:st.map(s=>s.left), backgroundColor:'#f3524a', borderRadius:5, yAxisID:'y' },
+            { label:T('kpiTurnoverRate')+' %', data:st.map(s=>+s.rate.toFixed(2)), type:'line', borderColor:'#ffb020', backgroundColor:'#ffb020', tension:.3, yAxisID:'y1' } ]},
+        options:{ responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ position:'bottom', labels:{ color:c.text, font:{family:'Inter', size:10} } }, datalabels:{ color:c.full, font:{family:'Roboto Mono', weight:'700', size:10}, anchor:'end', align:'top' } },
+            scales:{ y:{ beginAtZero:true, grid:{color:c.grid}, ticks:{color:c.text, precision:0} }, y1:{ beginAtZero:true, position:'right', grid:{display:false}, ticks:{color:c.text, callback:v=>v+'%'} }, x:{ grid:{display:false}, ticks:{color:c.text} } } }
+    });
+}
+
+/* Supervisor comparison: period (all / quarter / month) + specific supervisors or all */
+function renderSupCompare(){
+    const test = supPeriod==='all' ? ()=>true : supPeriod.includes('Q') ? (m=>quarterOf(m)===supPeriod) : (m=>m===supPeriod);
+    const allSups = Object.keys(sumBy(supRows(()=>true),'subdept')).sort();
+    supSel = new Set([...supSel].filter(s=>allSups.includes(s)));
+    document.getElementById('supChips').innerHTML = allSups.map(s=>
+        `<button class="chip ${supSel.has(s)?'active':''}" data-v="${escapeHtml(s)}" onclick="toggleSup(this.dataset.v)">${escapeHtml(s)}</button>`).join('');
+    const rows = supRows(test).filter(r=>!supSel.size || supSel.has(r.subdept));
+    const out = document.getElementById('supCmpOut'), box = document.getElementById('supCmpBox');
+    if(charts.supCmp) charts.supCmp.destroy();
+    const tot = sumBy(rows,'subdept');
+    const names = supSel.size ? [...supSel] : Object.keys(tot);
+    names.sort((a,b)=>(tot[b]||0)-(tot[a]||0));
+    const grand = names.reduce((a,s)=>a+(tot[s]||0),0);
+    if(!grand){ out.innerHTML = `<div class="no-results"><i class="fa-solid fa-inbox"></i>${T('supNoData')}</div>`; box.style.display='none'; return; }
+    box.style.display = '';
+    const hi = tot[names[0]]||0, lo = tot[names[names.length-1]]||0;
+    const hiN = names.filter(s=>(tot[s]||0)===hi).join(', '), loN = names.filter(s=>(tot[s]||0)===lo).join(', ');
+    out.innerHTML = `<div class="cmp-comment" style="border-inline-start:4px solid var(--shortage)">${fmtTpl('supTop',{names:`<b>${escapeHtml(hiN)}</b>`,n:hi,p:(hi/grand*100).toFixed(0)})}${names.length>1 && hi!==lo ? '<br>'+fmtTpl('supLow',{names:`<b>${escapeHtml(loN)}</b>`,n:lo}) : ''}</div>`;
+    const c = themeColors();
+    let cfg;
+    if(!supSel.size){   // all supervisors -> ranking
+        box.style.height = Math.max(300, names.length*28+40)+'px';
+        cfg = { type:'bar', data:{ labels:names, datasets:[{ data:names.map(s=>tot[s]), backgroundColor:names.map((_,i)=>rankColors[i%rankColors.length]), borderRadius:5 }] },
+            options:{ indexAxis:'y', plugins:{ legend:{display:false}, datalabels:{ anchor:'end', align:'right', color:c.full, font:{family:'Roboto Mono', weight:'700', size:10} } },
+                scales:{ x:{ beginAtZero:true, grace:'10%', grid:{color:c.grid}, ticks:{color:c.text, precision:0} }, y:{ grid:{display:false}, ticks:{color:c.text} } } } };
+    } else {            // chosen supervisors -> month by month
+        box.style.height = '320px';
+        const months = [...new Set(rows.map(r=>r.month))].sort();
+        const per = {}; rows.forEach(r=>{ const k=r.subdept+'|'+r.month; per[k]=(per[k]||0)+r.count; });
+        cfg = { type:'bar', data:{ labels:months, datasets:names.map((s,i)=>({ label:s, data:months.map(m=>per[s+'|'+m]||0), backgroundColor:deptColors[i%deptColors.length], borderRadius:5 })) },
+            options:{ plugins:{ legend:{ position:'bottom', labels:{ color:c.text, font:{family:'Inter', size:10} } }, datalabels:{ anchor:'end', align:'top', color:c.full, font:{family:'Roboto Mono', weight:'700', size:10}, display:ctx=>ctx.dataset.data[ctx.dataIndex]>0 } },
+                scales:{ y:{ beginAtZero:true, grace:'10%', grid:{color:c.grid}, ticks:{color:c.text, precision:0} }, x:{ grid:{display:false}, ticks:{color:c.text} } } } };
+    }
+    cfg.plugins = [ChartDataLabels]; cfg.options.responsive = true; cfg.options.maintainAspectRatio = false;
+    charts.supCmp = new Chart(document.getElementById('supCmpChart').getContext('2d'), cfg);
 }
 
 /* ══════════ THEME ══════════ */
@@ -957,7 +1092,7 @@ en: {
     kpiForScope:'for selection', kpiPeople:'people', kpiHeadcount:'headcount', kpiCases:'cases', kpiNoData:'no data yet',
     deptSection:'Departments — Resignations', deptSectionHint:'Tap any department card to see which jobs and reasons are behind its resignations.',
     sev_critical:'Critical', sev_high:'High', sev_moderate:'Moderate', sev_low:'Low',
-    topReason:'Top reason', topJob:'Top job', topLine:'Top line',
+    topReason:'Top reason', topJob:'Top job', topLine:'Top supervisor',
     jobsBreakdownTitle:'Resignations by Job Title', reasonsBreakdownTitle:'Resignations by Reason',
     subdeptBreakdownTitle:'Resignations by Supervisor',
     noJobData:'No job-title data yet for this selection — add rows to the "leaver_jobs" sheet tab.',
@@ -966,7 +1101,14 @@ en: {
     hotspotSection:'Resignation Hotspot', hotspotRankTitle:'Departments Ranked by Resignations',
     hotspotText:'{dept} has the most resignations for this selection — {n} people left, a {rate}% turnover rate. Worth a closer look first.',
     hotspotSubText:'Within it, {sub} has the most resignations ({n} people).',
-    noResignationsScope:'No resignations recorded for this selection.'
+    noResignationsScope:'No resignations recorded for this selection.',
+    chartSup:'Resignations by Supervisor', chartSupHint:'Which supervisors had the most resignations for the current selection.', supEmptyMsg:'No supervisor data for this selection.',
+    cmpSection:'Comparisons', cmpMonthsTitle:'Compare Months', cmpMonthsHint:'Pick two or more months. The department filter applies.', cmpNeedTwo:'Select at least two months to compare.',
+    cmpMetric:'Metric', cmpChange:'Change (first to last)', cmpStatus:'Result', kpiEnd:'Headcount (end)', stBetter:'Improved', stWorse:'Worse', stSame:'No change',
+    cmpLine:'{m}: {a} → {b} ({d}) — {s}.', vGood:'Overall: there is improvement.', vBad:'Overall: no improvement.', vMixed:'Overall: mixed results.',
+    vCount:'{i} improved, {w} worse, {s} unchanged (comparing {a} with {b}).',
+    supCmpTitle:'Supervisor Comparison', supCmpHint:'Choose a period, then pick specific supervisors or leave it on all. The department filter applies.', supPeriod:'Period', optQuarters:'Quarters', optMonths:'Months',
+    supAllBtn:'All supervisors', supTop:'Highest: {names} with {n} resignation(s) ({p}% of the total).', supLow:'Lowest: {names} with {n}.', supNoData:'No supervisor resignations for this period.'
 },
 tr: {
     loginSub:'Devir Analizi Portalı', signIn:'Giriş Yap', invalid:'Kullanıcı adı veya şifre hatalı', authOnly:'Yalnızca Yetkili Erişim',
@@ -987,7 +1129,7 @@ tr: {
     kpiForScope:'seçim için', kpiPeople:'kişi', kpiHeadcount:'personel', kpiCases:'vaka', kpiNoData:'veri yok',
     deptSection:'Departmanlar — İstifalar', deptSectionHint:'Hangi görevlerin ve sebeplerin istifaların arkasında olduğunu görmek için bir departman kartına dokunun.',
     sev_critical:'Kritik', sev_high:'Yüksek', sev_moderate:'Orta', sev_low:'Düşük',
-    topReason:'En sık sebep', topJob:'En sık görev', topLine:'En sık hat',
+    topReason:'En sık sebep', topJob:'En sık görev', topLine:'En sık supervizör',
     jobsBreakdownTitle:'Göreve Göre İstifalar', reasonsBreakdownTitle:'Sebebe Göre İstifalar',
     subdeptBreakdownTitle:'Supervizörlere Göre İstifalar',
     noJobData:'Bu seçim için henüz görev bazlı veri yok — "leaver_jobs" sekmesine satır ekleyin.',
@@ -996,7 +1138,14 @@ tr: {
     hotspotSection:'İstifa Sıcak Noktası', hotspotRankTitle:'İstifalara Göre Sıralanmış Departmanlar',
     hotspotText:'Bu seçim için en çok istifa {dept} departmanında — {n} kişi ayrıldı, %{rate} devir oranı. Önce buraya bakmakta fayda var.',
     hotspotSubText:'İçinde, en çok istifa {sub} hattında ({n} kişi).',
-    noResignationsScope:'Bu seçim için istifa kaydı yok.'
+    noResignationsScope:'Bu seçim için istifa kaydı yok.',
+    chartSup:'Supervizöre Göre İstifalar', chartSupHint:'Seçili filtre için en çok istifa olan supervizörler.', supEmptyMsg:'Bu seçim için supervizör verisi yok.',
+    cmpSection:'Karşılaştırmalar', cmpMonthsTitle:'Ayları Karşılaştır', cmpMonthsHint:'İki veya daha fazla ay seçin. Departman filtresi geçerlidir.', cmpNeedTwo:'Karşılaştırmak için en az iki ay seçin.',
+    cmpMetric:'Metrik', cmpChange:'Değişim (ilk - son)', cmpStatus:'Sonuç', kpiEnd:'Personel (dönem sonu)', stBetter:'İyileşti', stWorse:'Kötüleşti', stSame:'Değişmedi',
+    cmpLine:'{m}: {a} → {b} ({d}) — {s}.', vGood:'Genel: iyileşme var.', vBad:'Genel: iyileşme yok.', vMixed:'Genel: karışık sonuçlar.',
+    vCount:'{i} iyileşti, {w} kötüleşti, {s} değişmedi ({a} ile {b} karşılaştırması).',
+    supCmpTitle:'Supervizör Karşılaştırması', supCmpHint:'Bir dönem seçin, sonra belirli supervizörleri seçin veya hepsini bırakın. Departman filtresi geçerlidir.', supPeriod:'Dönem', optQuarters:'Çeyrekler', optMonths:'Aylar',
+    supAllBtn:'Tüm supervizörler', supTop:'En yüksek: {names}, {n} istifa (toplamın %{p} kadarı).', supLow:'En düşük: {names}, {n}.', supNoData:'Bu dönem için supervizör istifası yok.'
 },
 ar: {
     loginSub:'بوابة تحليل معدل الدوران', signIn:'تسجيل الدخول', invalid:'اسم المستخدم أو كلمة المرور غير صحيحة', authOnly:'دخول مصرح به فقط',
@@ -1017,7 +1166,7 @@ ar: {
     kpiForScope:'للاختيار الحالي', kpiPeople:'موظف', kpiHeadcount:'عدد الموظفين', kpiCases:'حالة', kpiNoData:'لا توجد بيانات',
     deptSection:'الأقسام — الاستقالات', deptSectionHint:'اضغط على أي كارت قسم لمعرفة الوظائف والأسباب الأكثر تأثيرًا في استقالاته.',
     sev_critical:'حرج', sev_high:'مرتفع', sev_moderate:'متوسط', sev_low:'منخفض',
-    topReason:'أكثر سبب', topJob:'أكثر وظيفة', topLine:'أكثر خط',
+    topReason:'أكثر سبب', topJob:'أكثر وظيفة', topLine:'أكثر مشرف',
     jobsBreakdownTitle:'الاستقالات حسب الوظيفة', reasonsBreakdownTitle:'الاستقالات حسب السبب',
     subdeptBreakdownTitle:'الاستقالات حسب المشرف',
     noJobData:'لا توجد بيانات وظائف لهذا الاختيار بعد — أضف صفوفًا في تبويب "leaver_jobs" بالشيت.',
@@ -1026,7 +1175,14 @@ ar: {
     hotspotSection:'أكثر الأقسام استقالة', hotspotRankTitle:'الأقسام مرتبة حسب عدد الاستقالات',
     hotspotText:'قسم {dept} به أكبر عدد استقالات ضمن هذا الاختيار — استقال {n} موظف، بمعدل دوران {rate}%. يستحق المراجعة أولًا.',
     hotspotSubText:'وجواه، أكتر خط فيه استقالات هو {sub} ({n} شخص).',
-    noResignationsScope:'لا توجد استقالات مسجلة لهذا الاختيار.'
+    noResignationsScope:'لا توجد استقالات مسجلة لهذا الاختيار.',
+    chartSup:'الاستقالات حسب المشرف', chartSupHint:'المشرفون الأكثر استقالات في الاختيار الحالي.', supEmptyMsg:'لا توجد بيانات مشرفين لهذا الاختيار.',
+    cmpSection:'المقارنات', cmpMonthsTitle:'مقارنة الشهور', cmpMonthsHint:'اختر شهرين أو أكثر. فلتر القسم مطبّق.', cmpNeedTwo:'اختر شهرين على الأقل للمقارنة.',
+    cmpMetric:'المؤشر', cmpChange:'التغيير (من الأول للأخير)', cmpStatus:'النتيجة', kpiEnd:'عدد الموظفين (النهاية)', stBetter:'تحسّن', stWorse:'تراجع', stSame:'لا تغيير',
+    cmpLine:'{m}: {a} → {b} ({d}) — {s}.', vGood:'بشكل عام: يوجد تحسن.', vBad:'بشكل عام: لا يوجد تحسن.', vMixed:'بشكل عام: نتائج متباينة.',
+    vCount:'{i} تحسّن، {w} تراجع، {s} بدون تغيير (مقارنة {a} مع {b}).',
+    supCmpTitle:'مقارنة المشرفين', supCmpHint:'اختر الفترة ثم مشرفين محددين أو اتركها للكل. فلتر القسم مطبّق.', supPeriod:'الفترة', optQuarters:'الأرباع', optMonths:'الشهور',
+    supAllBtn:'كل المشرفين', supTop:'الأعلى: {names} بعدد {n} استقالة ({p}% من الإجمالي).', supLow:'الأقل: {names} بعدد {n}.', supNoData:'لا توجد استقالات مشرفين في هذه الفترة.'
 }
 };
 let currentLang = 'en';
@@ -1073,6 +1229,8 @@ function applyTranslations(){
     document.getElementById('t_deptSectionHint').textContent = T('deptSectionHint');
     document.getElementById('t_hotspotSection').textContent = T('hotspotSection');
     document.getElementById('t_hotspotRankTitle').textContent = T('hotspotRankTitle');
+    document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = T(el.dataset.i18n); });
+    buildCompareControls();
 }
 
 fetchData();
