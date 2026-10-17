@@ -173,6 +173,23 @@ html[dir="rtl"] .dr-card-chevron { right:auto; left:16px; }
 .cmp-table td { font-family:'Roboto Mono',monospace; }
 .badge { font-size:10px; font-weight:800; padding:3px 9px; border-radius:12px; font-family:'Inter',sans-serif; }
 .cmp-comment { margin:12px 0; padding:12px 14px; border-radius:12px; background: var(--surface2); border:1px solid var(--border); font-size:12.5px; line-height:1.9; }
+.cmp-verdict{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;background:var(--surface2);border:1px solid var(--border);border-inline-start:5px solid var(--c);margin:10px 0 4px;font-size:13.5px;line-height:1.6}
+.cmp-verdict b{color:var(--c);font-family:'Inter',sans-serif}
+.cmp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:12px 0}
+.cmp-card{background:var(--surface2);border:1px solid var(--border);border-top:3px solid var(--c);border-radius:14px;padding:14px 16px}
+.cmp-card-label{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-family:'Inter',sans-serif;display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.cmp-card-main{font-family:'Roboto Mono',monospace;font-size:24px;font-weight:700;display:flex;gap:10px;align-items:center}
+.cmp-card-main i{font-size:12px;color:var(--muted)}
+.cmp-card-delta{margin:8px 0;font-family:'Roboto Mono',monospace;font-size:13px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cmp-card-seq{margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);font-size:10.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 12px;font-family:'Inter',sans-serif}
+.cmp-card-seq b{color:var(--text)}
+.cmp-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:16px}
+.cmp-chart-box{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px}
+.cmp-chart-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'Inter',sans-serif;margin-bottom:10px}
+.cmp-list{padding-inline-start:18px;margin:0}
+.cmp-list li{margin-bottom:5px}
+.q-group{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:7px 0;border-bottom:1px dashed var(--border)}
+.q-chip{font-weight:800;margin-inline-end:6px}
 </style>
 </head>
 <body class="login-locked">
@@ -313,19 +330,27 @@ html[dir="rtl"] .dr-card-chevron { right:auto; left:16px; }
     <div class="chart-card-hint" data-i18n="cmpMonthsHint">Pick two or more months. The department filter applies.</div>
     <div class="chips" id="cmpMonthChips"></div>
     <div id="cmpMonthOut"></div>
-    <div class="chart-container" id="cmpMonthChartWrap" style="margin-top:14px"><canvas id="cmpMonthChart"></canvas></div>
+    <div class="cmp-charts" id="cmpMonthCharts">
+        <div class="cmp-chart-box"><div class="cmp-chart-title" data-i18n="cmpChartFlow">Joiners vs Left</div><div class="chart-container" style="height:280px"><canvas id="cmpFlowChart"></canvas></div></div>
+        <div class="cmp-chart-box"><div class="cmp-chart-title" data-i18n="cmpChartRate">Turnover Rate (%)</div><div class="chart-container" style="height:280px"><canvas id="cmpRateChart"></canvas></div></div>
+    </div>
 </div>
 <div class="chart-card">
     <div class="chart-card-title"><i class="fa-solid fa-user-tie" style="color:#f065b8"></i><span data-i18n="supCmpTitle">Supervisor Comparison</span></div>
     <div class="chart-card-hint" data-i18n="supCmpHint">Choose a period, then pick specific supervisors or leave it on all. The department filter applies.</div>
     <div class="cmp-controls">
         <span class="filter-label" data-i18n="supPeriod">Period</span>
-        <select class="pill-select" id="supPeriodSel" onchange="supPeriod=this.value;renderSupCompare()"></select>
-        <button class="period-toggle" onclick="supSel.clear();renderSupCompare()" data-i18n="supAllBtn">All supervisors</button>
+        <button class="period-toggle" id="supAllTimeBtn" onclick="supMonths.clear();renderSupCompare()" data-i18n="pAll">All Time</button>
+    </div>
+    <div id="supPeriodChips"></div>
+    <div class="sec-hint" style="margin:6px 0 14px" data-i18n="supQuarterHint"></div>
+    <div class="cmp-controls">
+        <span class="filter-label" data-i18n="supPick">Supervisors</span>
+        <button class="period-toggle" id="supAllBtn" onclick="supSel.clear();renderSupCompare()" data-i18n="supAllBtn">All supervisors</button>
     </div>
     <div class="chips" id="supChips"></div>
-    <div id="supCmpOut"></div>
     <div class="chart-container" id="supCmpBox"><canvas id="supCmpChart"></canvas></div>
+    <div id="supCmpOut"></div>
 </div>
 
 <!-- ══════════ DEPARTMENT DETAIL MODAL ══════════ -->
@@ -960,77 +985,112 @@ function renderSupChart(){
 }
 
 /* ══════════ NEW: COMPARISONS ══════════ */
-let cmpMonths = new Set(), supSel = new Set(), supPeriod = 'all';
+let cmpMonths = new Set(), supSel = new Set(), supMonths = new Set();
 function toggleCmpMonth(m){ cmpMonths.has(m) ? cmpMonths.delete(m) : cmpMonths.add(m); buildCompareControls(); renderMonthCompare(); }
 function toggleSup(s){ supSel.has(s) ? supSel.delete(s) : supSel.add(s); renderSupCompare(); }
+function toggleSupMonth(m){ supMonths.has(m) ? supMonths.delete(m) : supMonths.add(m); renderSupCompare(); }
+function toggleSupQuarter(q){
+    const ms = [...new Set(rawLeaverJobs.map(r=>r.month))].filter(m=>quarterOf(m)===q);
+    const all = ms.every(m=>supMonths.has(m));
+    ms.forEach(m=>{ all ? supMonths.delete(m) : supMonths.add(m); });
+    renderSupCompare();
+}
+function qLabel(q){ const p=q.split('-'); return p[1]+' · '+p[0]; }
 
 function buildCompareControls(){
     const months = [...new Set(rawRows.map(r=>r.month))].sort();
     cmpMonths = new Set([...cmpMonths].filter(m=>months.includes(m)));
     document.getElementById('cmpMonthChips').innerHTML = months.map(m=>
         `<button class="chip ${cmpMonths.has(m)?'active':''}" data-v="${escapeHtml(m)}" onclick="toggleCmpMonth(this.dataset.v)">${escapeHtml(m)}</button>`).join('');
-    const jm = [...new Set(rawLeaverJobs.map(r=>r.month))].sort(), qs = [...new Set(jm.map(quarterOf))];
-    if(supPeriod!=='all' && !qs.includes(supPeriod) && !jm.includes(supPeriod)) supPeriod='all';
-    const sel = document.getElementById('supPeriodSel');
-    sel.innerHTML = `<option value="all">${T('pAll')}</option><optgroup label="${T('optQuarters')}">${qs.map(q=>`<option value="${q}">${q}</option>`).join('')}</optgroup><optgroup label="${T('optMonths')}">${jm.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('')}</optgroup>`;
-    sel.value = supPeriod;
 }
 function renderCompare(){ renderMonthCompare(); renderSupCompare(); }
 
-/* Months comparison. Improvement logic:
-   Left / Turnover rate -> lower = improvement.  Joiners / Headcount -> higher = improvement. */
+/* ── Compare months. Improvement logic:
+   Left / Turnover rate -> lower = improvement.  Joiners / Headcount -> higher = improvement.
+   Compared: FIRST selected month vs LAST selected month (all selected months shown on each card). ── */
 function renderMonthCompare(){
     const d = document.getElementById('deptFilter').value;
     const rows = d==='all' ? rawRows : rawRows.filter(r=>r.dept===d);
-    const months = [...cmpMonths].sort(), out = document.getElementById('cmpMonthOut'), wrap = document.getElementById('cmpMonthChartWrap');
-    if(charts.cmpM) charts.cmpM.destroy();
-    if(months.length<2){ out.innerHTML = `<div class="no-results"><i class="fa-solid fa-code-compare"></i>${T('cmpNeedTwo')}</div>`; wrap.style.display='none'; return; }
-    wrap.style.display = '';
+    const months = [...cmpMonths].sort(), out = document.getElementById('cmpMonthOut'), boxes = document.getElementById('cmpMonthCharts');
+    if(charts.cmpFlow) charts.cmpFlow.destroy();
+    if(charts.cmpRate) charts.cmpRate.destroy();
+    if(months.length<2){ out.innerHTML = `<div class="no-results"><i class="fa-solid fa-code-compare"></i>${T('cmpNeedTwo')}</div>`; boxes.style.display='none'; return; }
+    boxes.style.display = '';
     const st = months.map(m=>calcStats(rows.filter(r=>r.month===m)));
+    const f = escapeHtml(months[0]), l = escapeHtml(months[months.length-1]);
     const int = v=>v.toFixed(0);
     const metrics = [
-        { label:T('kpiLeft'), get:s=>s.left, better:-1, fmt:int, dfmt:int },
-        { label:T('kpiJoiners'), get:s=>s.joiners, better:1, fmt:int, dfmt:int },
-        { label:T('kpiTurnoverRate'), get:s=>s.rate, better:-1, fmt:v=>v.toFixed(1)+'%', dfmt:v=>v.toFixed(1)+' pp' },
-        { label:T('kpiEnd'), get:s=>s.end, better:1, fmt:int, dfmt:int }
+        { label:T('kpiLeft'), icon:'fa-user-minus', get:s=>s.left, better:-1, fmt:int, dfmt:int },
+        { label:T('kpiJoiners'), icon:'fa-user-plus', get:s=>s.joiners, better:1, fmt:int, dfmt:int },
+        { label:T('kpiTurnoverRate'), icon:'fa-percent', get:s=>s.rate, better:-1, fmt:v=>v.toFixed(1)+'%', dfmt:v=>v.toFixed(1)+' pp' },
+        { label:T('kpiEnd'), icon:'fa-users', get:s=>s.end, better:1, fmt:int, dfmt:int }
     ];
-    let good=0, bad=0, same=0, lines=[], body='';
+    let good=0, bad=0, cards='', lines=[];
     metrics.forEach(mt=>{
         const a = mt.get(st[0]), b = mt.get(st[st.length-1]), diff = b-a;
         const eq = Math.abs(diff) < 0.05;
         const s = eq ? 'same' : (diff*mt.better>0 ? 'good' : 'bad');
-        if(s==='good') good++; else if(s==='bad') bad++; else same++;
+        if(s==='good') good++; else if(s==='bad') bad++;
         const col = s==='good' ? 'var(--fine)' : s==='bad' ? 'var(--shortage)' : 'var(--surplus)';
         const txt = s==='good' ? T('stBetter') : s==='bad' ? T('stWorse') : T('stSame');
-        const pct = a>0 ? ' / '+(diff>=0?'+':'')+(diff/a*100).toFixed(0)+'%' : '';
-        const dTxt = (diff>=0?'+':'')+mt.dfmt(diff)+pct;
-        lines.push(fmtTpl('cmpLine',{m:mt.label,a:mt.fmt(a),b:mt.fmt(b),d:dTxt,s:txt}));
-        body += `<tr><td>${mt.label}</td>${st.map(x=>`<td>${mt.fmt(mt.get(x))}</td>`).join('')}<td style="color:${col}">${dTxt}</td><td><span class="badge" style="background:color-mix(in srgb, ${col} 18%, transparent);color:${col}">${txt}</span></td></tr>`;
+        const pct = a>0 ? Math.abs(diff/a*100).toFixed(0)+'%' : '—';
+        const arrow = eq ? 'fa-minus' : diff>0 ? 'fa-arrow-up' : 'fa-arrow-down';
+        cards += `<div class="cmp-card" style="--c:${col}">
+            <div class="cmp-card-label"><i class="fa-solid ${mt.icon}"></i>${mt.label}</div>
+            <div class="cmp-card-main"><span>${mt.fmt(a)}</span><i class="fa-solid fa-arrow-right"></i><span>${mt.fmt(b)}</span></div>
+            <div class="cmp-card-delta" style="color:${col}"><i class="fa-solid ${arrow}"></i>${eq?'0':mt.dfmt(Math.abs(diff))+' ('+pct+')'}<span class="badge" style="background:color-mix(in srgb, ${col} 18%, transparent)">${txt}</span></div>
+            <div class="cmp-card-seq">${months.map((m,i)=>`<span>${escapeHtml(m)}: <b>${mt.fmt(mt.get(st[i]))}</b></span>`).join('')}</div>
+        </div>`;
+        lines.push(eq ? fmtTpl('cmpSame',{m:mt.label,f,l,a:mt.fmt(a)})
+            : fmtTpl('cmpSent',{m:mt.label,dir:diff>0?T('dirUp'):T('dirDown'),d:mt.dfmt(Math.abs(diff)),p:pct,a:mt.fmt(a),b:mt.fmt(b),f,l,s:s==='good'?T('sImp'):T('sBad')}));
     });
+    const lefts = st.map(s=>s.left), minI = lefts.indexOf(Math.min(...lefts)), maxI = lefts.indexOf(Math.max(...lefts));
+    if(minI!==maxI) lines.push(fmtTpl('cmpBest',{m1:escapeHtml(months[minI]),n1:lefts[minI],m2:escapeHtml(months[maxI]),n2:lefts[maxI]}));
     const vKey = good>bad ? 'vGood' : bad>good ? 'vBad' : 'vMixed';
     const vCol = good>bad ? 'var(--fine)' : bad>good ? 'var(--shortage)' : 'var(--surplus)';
-    out.innerHTML = `<div class="table-wrap"><table class="cmp-table"><thead><tr><th>${T('cmpMetric')}</th>${months.map(m=>`<th>${escapeHtml(m)}</th>`).join('')}<th>${T('cmpChange')}</th><th>${T('cmpStatus')}</th></tr></thead><tbody>${body}</tbody></table></div>
-        <div class="cmp-comment" style="border-inline-start:4px solid ${vCol}"><b style="color:${vCol}">${T(vKey)}</b> ${fmtTpl('vCount',{i:good,w:bad,s:same,a:escapeHtml(months[0]),b:escapeHtml(months[months.length-1])})}<br>${lines.map(escapeHtml).join('<br>')}</div>`;
+    out.innerHTML = `<div class="cmp-verdict" style="--c:${vCol}"><div><b>${T(vKey)}</b><br>${fmtTpl('vCount2',{i:good,t:metrics.length,w:bad,f,l})}</div></div>
+        <div class="cmp-grid">${cards}</div>
+        <div class="cmp-comment"><ul class="cmp-list">${lines.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+
     const c = themeColors();
-    charts.cmpM = new Chart(document.getElementById('cmpMonthChart').getContext('2d'), {
+    const base = { responsive:true, maintainAspectRatio:false };
+    charts.cmpFlow = new Chart(document.getElementById('cmpFlowChart').getContext('2d'), {
         type:'bar', plugins:[ChartDataLabels],
         data:{ labels:months, datasets:[
-            { label:T('kpiJoiners'), data:st.map(s=>s.joiners), backgroundColor:'#0fd493', borderRadius:5, yAxisID:'y' },
-            { label:T('kpiLeft'), data:st.map(s=>s.left), backgroundColor:'#f3524a', borderRadius:5, yAxisID:'y' },
-            { label:T('kpiTurnoverRate')+' %', data:st.map(s=>+s.rate.toFixed(2)), type:'line', borderColor:'#ffb020', backgroundColor:'#ffb020', tension:.3, yAxisID:'y1' } ]},
-        options:{ responsive:true, maintainAspectRatio:false,
-            plugins:{ legend:{ position:'bottom', labels:{ color:c.text, font:{family:'Inter', size:10} } }, datalabels:{ color:c.full, font:{family:'Roboto Mono', weight:'700', size:10}, anchor:'end', align:'top' } },
-            scales:{ y:{ beginAtZero:true, grid:{color:c.grid}, ticks:{color:c.text, precision:0} }, y1:{ beginAtZero:true, position:'right', grid:{display:false}, ticks:{color:c.text, callback:v=>v+'%'} }, x:{ grid:{display:false}, ticks:{color:c.text} } } }
+            { label:T('kpiJoiners'), data:st.map(s=>s.joiners), backgroundColor:'#0fd493', borderRadius:5 },
+            { label:T('kpiLeft'), data:st.map(s=>s.left), backgroundColor:'#f3524a', borderRadius:5 } ]},
+        options:{ ...base, categoryPercentage:.7, barPercentage:.9,
+            plugins:{ legend:{ position:'bottom', labels:{ color:c.text, font:{family:'Inter', size:10} } }, datalabels:{ anchor:'end', align:'top', color:c.full, font:{family:'Roboto Mono', weight:'700', size:10} } },
+            scales:{ y:{ beginAtZero:true, grace:'15%', grid:{color:c.grid}, ticks:{color:c.text, precision:0} }, x:{ grid:{display:false}, ticks:{color:c.text} } } }
+    });
+    charts.cmpRate = new Chart(document.getElementById('cmpRateChart').getContext('2d'), {
+        type:'line', plugins:[ChartDataLabels],
+        data:{ labels:months, datasets:[{ label:T('kpiTurnoverRate'), data:st.map(s=>+s.rate.toFixed(2)), borderColor:'#ffb020', backgroundColor:'rgba(255,176,32,0.15)', fill:true, tension:.3, pointRadius:5, pointBackgroundColor:'#ffb020' }] },
+        options:{ ...base,
+            plugins:{ legend:{display:false}, datalabels:{ align:'top', color:c.full, font:{family:'Roboto Mono', weight:'700', size:10}, formatter:v=>v.toFixed(1)+'%' } },
+            scales:{ y:{ beginAtZero:true, grace:'20%', grid:{color:c.grid}, ticks:{color:c.text, callback:v=>v+'%'} }, x:{ grid:{display:false}, ticks:{color:c.text} } } }
     });
 }
 
-/* Supervisor comparison: period (all / quarter / month) + specific supervisors or all */
+/* ── Compare supervisors: ONE bar per supervisor = total resignations in the selected period.
+   Period = all time, or any mix of months / whole quarters (Q1 = months 1-3, Q2 = 4-6 ...). ── */
 function renderSupCompare(){
-    const test = supPeriod==='all' ? ()=>true : supPeriod.includes('Q') ? (m=>quarterOf(m)===supPeriod) : (m=>m===supPeriod);
+    const jm = [...new Set(rawLeaverJobs.map(r=>r.month))].sort();
+    supMonths = new Set([...supMonths].filter(m=>jm.includes(m)));
+    const byQ = {}; jm.forEach(m=>{ (byQ[quarterOf(m)] = byQ[quarterOf(m)] || []).push(m); });
+    document.getElementById('supPeriodChips').innerHTML = Object.keys(byQ).sort().map(q=>{
+        const ms = byQ[q], all = ms.every(m=>supMonths.has(m));
+        return `<div class="q-group"><button class="chip q-chip ${all?'active':''}" data-v="${q}" onclick="toggleSupQuarter(this.dataset.v)">${qLabel(q)}</button>${ms.map(m=>`<button class="chip ${supMonths.has(m)?'active':''}" data-v="${escapeHtml(m)}" onclick="toggleSupMonth(this.dataset.v)">${escapeHtml(m)}</button>`).join('')}</div>`;
+    }).join('');
+    document.getElementById('supAllTimeBtn').classList.toggle('active', !supMonths.size);
+    document.getElementById('supAllBtn').classList.toggle('active', !supSel.size);
+
+    const test = supMonths.size ? (m=>supMonths.has(m)) : (()=>true);
     const allSups = Object.keys(sumBy(supRows(()=>true),'subdept')).sort();
     supSel = new Set([...supSel].filter(s=>allSups.includes(s)));
     document.getElementById('supChips').innerHTML = allSups.map(s=>
         `<button class="chip ${supSel.has(s)?'active':''}" data-v="${escapeHtml(s)}" onclick="toggleSup(this.dataset.v)">${escapeHtml(s)}</button>`).join('');
+
     const rows = supRows(test).filter(r=>!supSel.size || supSel.has(r.subdept));
     const out = document.getElementById('supCmpOut'), box = document.getElementById('supCmpBox');
     if(charts.supCmp) charts.supCmp.destroy();
@@ -1040,26 +1100,31 @@ function renderSupCompare(){
     const grand = names.reduce((a,s)=>a+(tot[s]||0),0);
     if(!grand){ out.innerHTML = `<div class="no-results"><i class="fa-solid fa-inbox"></i>${T('supNoData')}</div>`; box.style.display='none'; return; }
     box.style.display = '';
-    const hi = tot[names[0]]||0, lo = tot[names[names.length-1]]||0;
-    const hiN = names.filter(s=>(tot[s]||0)===hi).join(', '), loN = names.filter(s=>(tot[s]||0)===lo).join(', ');
-    out.innerHTML = `<div class="cmp-comment" style="border-inline-start:4px solid var(--shortage)">${fmtTpl('supTop',{names:`<b>${escapeHtml(hiN)}</b>`,n:hi,p:(hi/grand*100).toFixed(0)})}${names.length>1 && hi!==lo ? '<br>'+fmtTpl('supLow',{names:`<b>${escapeHtml(loN)}</b>`,n:lo}) : ''}</div>`;
+    box.style.height = Math.max(240, names.length*34+50)+'px';
     const c = themeColors();
-    let cfg;
-    if(!supSel.size){   // all supervisors -> ranking
-        box.style.height = Math.max(300, names.length*28+40)+'px';
-        cfg = { type:'bar', data:{ labels:names, datasets:[{ data:names.map(s=>tot[s]), backgroundColor:names.map((_,i)=>rankColors[i%rankColors.length]), borderRadius:5 }] },
-            options:{ indexAxis:'y', plugins:{ legend:{display:false}, datalabels:{ anchor:'end', align:'right', color:c.full, font:{family:'Roboto Mono', weight:'700', size:10} } },
-                scales:{ x:{ beginAtZero:true, grace:'10%', grid:{color:c.grid}, ticks:{color:c.text, precision:0} }, y:{ grid:{display:false}, ticks:{color:c.text} } } } };
-    } else {            // chosen supervisors -> month by month
-        box.style.height = '320px';
-        const months = [...new Set(rows.map(r=>r.month))].sort();
-        const per = {}; rows.forEach(r=>{ const k=r.subdept+'|'+r.month; per[k]=(per[k]||0)+r.count; });
-        cfg = { type:'bar', data:{ labels:months, datasets:names.map((s,i)=>({ label:s, data:months.map(m=>per[s+'|'+m]||0), backgroundColor:deptColors[i%deptColors.length], borderRadius:5 })) },
-            options:{ plugins:{ legend:{ position:'bottom', labels:{ color:c.text, font:{family:'Inter', size:10} } }, datalabels:{ anchor:'end', align:'top', color:c.full, font:{family:'Roboto Mono', weight:'700', size:10}, display:ctx=>ctx.dataset.data[ctx.dataIndex]>0 } },
-                scales:{ y:{ beginAtZero:true, grace:'10%', grid:{color:c.grid}, ticks:{color:c.text, precision:0} }, x:{ grid:{display:false}, ticks:{color:c.text} } } } };
-    }
-    cfg.plugins = [ChartDataLabels]; cfg.options.responsive = true; cfg.options.maintainAspectRatio = false;
-    charts.supCmp = new Chart(document.getElementById('supCmpChart').getContext('2d'), cfg);
+    charts.supCmp = new Chart(document.getElementById('supCmpChart').getContext('2d'), {
+        type:'bar', plugins:[ChartDataLabels],
+        data:{ labels:names, datasets:[{ data:names.map(s=>tot[s]||0), backgroundColor:names.map((_,i)=>rankColors[i%rankColors.length]), borderRadius:5, maxBarThickness:26 }] },
+        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{display:false}, datalabels:{ anchor:'end', align:'right', color:c.full, font:{family:'Roboto Mono', weight:'700', size:11} } },
+            scales:{ x:{ beginAtZero:true, grace:'12%', grid:{color:c.grid}, ticks:{color:c.text, precision:0} }, y:{ grid:{display:false}, ticks:{color:c.text, font:{family:'Inter', size:11}} } } }
+    });
+
+    // detailed comment under the chart
+    const b = n=>`<b>${escapeHtml(n)}</b>`;
+    const hi = tot[names[0]]||0, lo = tot[names[names.length-1]]||0;
+    const hiN = names.filter(s=>(tot[s]||0)===hi).map(b).join(', '), loN = names.filter(s=>(tot[s]||0)===lo).map(b).join(', ');
+    const periodTxt = supMonths.size ? [...supMonths].sort().join(', ') : T('pAll');
+    const items = [ fmtTpl('supPeriodLine',{p:escapeHtml(periodTxt)}),
+        fmtTpl('supTotal',{n:grand,s:names.filter(s=>tot[s]>0).length,a:(grand/names.length).toFixed(1)}),
+        fmtTpl('supTop',{names:hiN,n:hi,p:(hi/grand*100).toFixed(0)}) ];
+    if(names.length>1 && hi!==lo) items.push(fmtTpl('supLow',{names:loN,n:lo}));
+    if(names.length>3) items.push(fmtTpl('supTop3',{list:names.slice(0,3).map(s=>`${b(s)} (${tot[s]})`).join(', ')}));
+    const zeros = names.filter(s=>!(tot[s]>0));
+    if(zeros.length) items.push(fmtTpl('supZero',{names:zeros.map(b).join(', ')}));
+    const mt = sumBy(rows,'month'), mk = Object.keys(mt).sort((x,y)=>mt[y]-mt[x]);
+    if(mk.length>1) items.push(fmtTpl('supBusy',{m:escapeHtml(mk[0]),n:mt[mk[0]]}));
+    out.innerHTML = `<div class="cmp-comment" style="border-inline-start:4px solid var(--shortage)"><ul class="cmp-list">${items.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
 }
 
 /* ══════════ THEME ══════════ */
@@ -1108,7 +1173,14 @@ en: {
     cmpLine:'{m}: {a} → {b} ({d}) — {s}.', vGood:'Overall: there is improvement.', vBad:'Overall: no improvement.', vMixed:'Overall: mixed results.',
     vCount:'{i} improved, {w} worse, {s} unchanged (comparing {a} with {b}).',
     supCmpTitle:'Supervisor Comparison', supCmpHint:'Choose a period, then pick specific supervisors or leave it on all. The department filter applies.', supPeriod:'Period', optQuarters:'Quarters', optMonths:'Months',
-    supAllBtn:'All supervisors', supTop:'Highest: {names} with {n} resignation(s) ({p}% of the total).', supLow:'Lowest: {names} with {n}.', supNoData:'No supervisor resignations for this period.'
+    supAllBtn:'All supervisors', supTop:'Highest: {names} with {n} resignation(s) ({p}% of the total).', supLow:'Lowest: {names} with {n}.', supNoData:'No supervisor resignations for this period.',
+    cmpChartFlow:'Joiners vs Left', cmpChartRate:'Turnover Rate (%)', dirUp:'increased', dirDown:'decreased',
+    cmpSent:'{m} {dir} by {d} ({p}) — from {a} in {f} to {b} in {l}. {s}', cmpSame:'{m} did not change between {f} and {l} (stayed at {a}).',
+    sImp:'This is an improvement.', sBad:'This is not an improvement — needs attention.', cmpBest:'Fewest leavers: {m1} ({n1}). Most leavers: {m2} ({n2}).',
+    vCount2:'{i} of {t} indicators improved, {w} got worse (comparing {f} to {l}).', supPick:'Supervisors',
+    supQuarterHint:'Quarter 1 = months 1–3, Quarter 2 = months 4–6, Quarter 3 = months 7–9, Quarter 4 = months 10–12. You can select several months or quarters.',
+    supPeriodLine:'Period: {p}.', supTotal:'Total: {n} resignation(s) across {s} supervisor(s), average {a} per supervisor.',
+    supTop3:'Top 3: {list}.', supZero:'No resignations: {names}.', supBusy:'Busiest month: {m} with {n} resignation(s).'
 },
 tr: {
     loginSub:'Devir Analizi Portalı', signIn:'Giriş Yap', invalid:'Kullanıcı adı veya şifre hatalı', authOnly:'Yalnızca Yetkili Erişim',
@@ -1145,7 +1217,14 @@ tr: {
     cmpLine:'{m}: {a} → {b} ({d}) — {s}.', vGood:'Genel: iyileşme var.', vBad:'Genel: iyileşme yok.', vMixed:'Genel: karışık sonuçlar.',
     vCount:'{i} iyileşti, {w} kötüleşti, {s} değişmedi ({a} ile {b} karşılaştırması).',
     supCmpTitle:'Supervizör Karşılaştırması', supCmpHint:'Bir dönem seçin, sonra belirli supervizörleri seçin veya hepsini bırakın. Departman filtresi geçerlidir.', supPeriod:'Dönem', optQuarters:'Çeyrekler', optMonths:'Aylar',
-    supAllBtn:'Tüm supervizörler', supTop:'En yüksek: {names}, {n} istifa (toplamın %{p} kadarı).', supLow:'En düşük: {names}, {n}.', supNoData:'Bu dönem için supervizör istifası yok.'
+    supAllBtn:'Tüm supervizörler', supTop:'En yüksek: {names}, {n} istifa (toplamın %{p} kadarı).', supLow:'En düşük: {names}, {n}.', supNoData:'Bu dönem için supervizör istifası yok.',
+    cmpChartFlow:'İşe Girenler vs Ayrılanlar', cmpChartRate:'Devir Oranı (%)', dirUp:'arttı', dirDown:'azaldı',
+    cmpSent:'{m}, {f} ile {l} arasında {d} ({p}) {dir}: {a} → {b}. {s}', cmpSame:'{m}, {f} ile {l} arasında değişmedi ({a}).',
+    sImp:'Bu bir iyileşmedir.', sBad:'Bu bir iyileşme değil — dikkat gerektirir.', cmpBest:'En az ayrılan: {m1} ({n1}). En çok ayrılan: {m2} ({n2}).',
+    vCount2:'{t} göstergeden {i} tanesi iyileşti, {w} tanesi kötüleşti ({f} ile {l} karşılaştırması).', supPick:'Supervizörler',
+    supQuarterHint:'Çeyrek 1 = 1–3. aylar, Çeyrek 2 = 4–6, Çeyrek 3 = 7–9, Çeyrek 4 = 10–12. Birden fazla ay veya çeyrek seçebilirsiniz.',
+    supPeriodLine:'Dönem: {p}.', supTotal:'Toplam: {s} supervizörde {n} istifa, supervizör başına ortalama {a}.',
+    supTop3:'İlk 3: {list}.', supZero:'İstifa yok: {names}.', supBusy:'En yoğun ay: {m}, {n} istifa.'
 },
 ar: {
     loginSub:'بوابة تحليل معدل الدوران', signIn:'تسجيل الدخول', invalid:'اسم المستخدم أو كلمة المرور غير صحيحة', authOnly:'دخول مصرح به فقط',
@@ -1182,7 +1261,14 @@ ar: {
     cmpLine:'{m}: {a} → {b} ({d}) — {s}.', vGood:'بشكل عام: يوجد تحسن.', vBad:'بشكل عام: لا يوجد تحسن.', vMixed:'بشكل عام: نتائج متباينة.',
     vCount:'{i} تحسّن، {w} تراجع، {s} بدون تغيير (مقارنة {a} مع {b}).',
     supCmpTitle:'مقارنة المشرفين', supCmpHint:'اختر الفترة ثم مشرفين محددين أو اتركها للكل. فلتر القسم مطبّق.', supPeriod:'الفترة', optQuarters:'الأرباع', optMonths:'الشهور',
-    supAllBtn:'كل المشرفين', supTop:'الأعلى: {names} بعدد {n} استقالة ({p}% من الإجمالي).', supLow:'الأقل: {names} بعدد {n}.', supNoData:'لا توجد استقالات مشرفين في هذه الفترة.'
+    supAllBtn:'كل المشرفين', supTop:'الأعلى: {names} بعدد {n} استقالة ({p}% من الإجمالي).', supLow:'الأقل: {names} بعدد {n}.', supNoData:'لا توجد استقالات مشرفين في هذه الفترة.',
+    cmpChartFlow:'الملتحقون مقابل التاركين', cmpChartRate:'معدل الدوران (%)', dirUp:'زاد', dirDown:'قلّ',
+    cmpSent:'{m} {dir} بمقدار {d} ({p}) — من {a} في {f} إلى {b} في {l}. {s}', cmpSame:'{m} لم يتغير بين {f} و{l} (ثابت عند {a}).',
+    sImp:'هذا تحسّن.', sBad:'هذا ليس تحسنًا — يحتاج متابعة.', cmpBest:'أقل عدد تاركين: {m1} ({n1}). أكثر عدد تاركين: {m2} ({n2}).',
+    vCount2:'{i} من {t} مؤشرات تحسّنت، و{w} تراجعت (مقارنة {f} مع {l}).', supPick:'المشرفون',
+    supQuarterHint:'الربع 1 = الشهور 1–3، الربع 2 = 4–6، الربع 3 = 7–9، الربع 4 = 10–12. يمكنك اختيار أكثر من شهر أو ربع.',
+    supPeriodLine:'الفترة: {p}.', supTotal:'الإجمالي: {n} استقالة لدى {s} مشرف، بمتوسط {a} لكل مشرف.',
+    supTop3:'أعلى 3: {list}.', supZero:'بدون استقالات: {names}.', supBusy:'أكثر شهر استقالات: {m} بعدد {n}.'
 }
 };
 let currentLang = 'en';
